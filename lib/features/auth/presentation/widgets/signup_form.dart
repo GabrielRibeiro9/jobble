@@ -4,6 +4,10 @@ import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
+import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/core/services/token_service.dart';
+import 'package:flutter_tcc/injection_container.dart' as di;
 
 class SignupForm extends StatefulWidget {
   const SignupForm({super.key});
@@ -32,13 +36,23 @@ class _SignupFormState extends State<SignupForm> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          // SnackBar removed
         }
         if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Conta criada com sucesso!')),
+          final tokenService = di.sl<TokenService>();
+          tokenService.saveToken(state.accessToken);
+
+          final completed = tokenService.isOnboardingCompleted(
+            state.accessToken,
+          );
+
+          if (!mounted) return;
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) =>
+                  completed ? const HomePage() : const OnboardingPage(),
+            ),
           );
         }
       },
@@ -153,11 +167,7 @@ class _SignupFormState extends State<SignupForm> {
                   : () {
                       if (_passwordController.text !=
                           _confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('As senhas não coincidem'),
-                          ),
-                        );
+                        // SnackBar removed
                         return;
                       }
                       context.read<AuthBloc>().add(

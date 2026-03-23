@@ -5,6 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
+import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/core/services/token_service.dart';
+import 'package:flutter_tcc/injection_container.dart' as di;
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -30,15 +34,23 @@ class _LoginFormState extends State<LoginForm> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          // SnackBar removed
         }
         if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login realizado com sucesso!')),
+          final tokenService = di.sl<TokenService>();
+          tokenService.saveToken(state.accessToken);
+          
+          final completed = tokenService.isOnboardingCompleted(state.accessToken);
+          
+          if (!mounted) return;
+          
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => completed 
+                  ? const HomePage() 
+                  : const OnboardingPage(),
+            ),
           );
-          // TODO: Navigate to home
         }
       },
       builder: (context, state) {

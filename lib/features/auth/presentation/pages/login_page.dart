@@ -30,11 +30,9 @@ class LoginPage extends StatelessWidget {
                       children: [
                         const SizedBox(height: 32),
 
-                        // ── Logo ──
                         Image.asset(AppAssets.logo, height: 24),
 
-                        const Spacer(), // ── Adicionado para centralizar ──
-                        // ── Conteúdo Centralizado com Padding Adicional ──
+                        const Spacer(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: Center(
@@ -50,7 +48,6 @@ class LoginPage extends StatelessWidget {
                                         AuthErrorCard(message: state.message),
                                         const SizedBox(height: 32),
                                       ],
-                                      // ── Title ──
                                       Text(
                                         'Acesse sua conta',
                                         style: const TextStyle(
@@ -61,7 +58,7 @@ class LoginPage extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       const Text(
-                                        'Entre com seu email para acessar sua conta',
+                                        'Entre para acompanhar seus trabalhos',
                                         style: TextStyle(
                                           color: AppColors.textSecondary,
                                           fontSize: 14,
@@ -75,19 +72,6 @@ class LoginPage extends StatelessWidget {
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor:
                                               AppColors.textPrimary,
-                                          minimumSize: const Size(
-                                            double.infinity,
-                                            48,
-                                          ),
-                                          side: const BorderSide(
-                                            color: AppColors.border,
-                                            width: 0.3,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
                                           textStyle: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -102,7 +86,7 @@ class LoginPage extends StatelessWidget {
                                           width: 18,
                                         ),
                                         label: const Text(
-                                          'Começar com Google',
+                                          'Entrar com Google',
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
@@ -208,7 +192,8 @@ class LoginPage extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: 'Ao continuar, você concorda com os ',
+                                    text:
+                                        'Ao continuar, você concorda com nossos\n',
                                   ),
                                   TextSpan(
                                     text: 'Termos de Serviço',
@@ -217,7 +202,7 @@ class LoginPage extends StatelessWidget {
                                       decorationColor: AppColors.textSecondary,
                                     ),
                                   ),
-                                  TextSpan(text: '\ne a '),
+                                  TextSpan(text: ' e a '),
                                   TextSpan(
                                     text: 'Política de Privacidade',
                                     style: TextStyle(
@@ -225,7 +210,6 @@ class LoginPage extends StatelessWidget {
                                       decorationColor: AppColors.textSecondary,
                                     ),
                                   ),
-                                  TextSpan(text: ' da Base Brasil.'),
                                 ],
                               ),
                               textAlign: TextAlign.center,

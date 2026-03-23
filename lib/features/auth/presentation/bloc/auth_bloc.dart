@@ -8,10 +8,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final SignupUseCase signupUseCase;
 
-  AuthBloc({
-    required this.loginUseCase,
-    required this.signupUseCase,
-  }) : super(AuthInitial()) {
+  AuthBloc({required this.loginUseCase, required this.signupUseCase})
+    : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignupSubmitted>(_onSignupSubmitted);
   }
@@ -25,7 +23,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await loginUseCase.execute(event.email, event.password);
       emit(AuthSuccess(accessToken: result.accessToken));
     } catch (e) {
-      emit(AuthFailure(message: e.toString()));
+      final message = e.toString().replaceAll('Exception: ', '');
+      emit(AuthFailure(message: message));
     }
   }
 
@@ -42,7 +41,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthSuccess(accessToken: result.accessToken));
     } catch (e) {
-      emit(AuthFailure(message: e.toString()));
+      final message = e.toString().replaceAll('Exception: ', '');
+      emit(AuthFailure(message: message));
     }
   }
 }
