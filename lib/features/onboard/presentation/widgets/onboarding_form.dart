@@ -1,9 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class OnboardingForm extends StatefulWidget {
-  const OnboardingForm({super.key});
+  final int step;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
+
+  const OnboardingForm({
+    super.key,
+    required this.step,
+    required this.onNext,
+    required this.onPrevious,
+  });
 
   @override
   State<OnboardingForm> createState() => _OnboardingFormState();
@@ -13,7 +24,14 @@ class _OnboardingFormState extends State<OnboardingForm> {
   final _nameController = TextEditingController();
   final _companyController = TextEditingController();
   final _dateController = TextEditingController();
-  
+  final _cpfController = TextEditingController();
+
+  final _cpfFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
   DateTime? _selectedDate;
   String? _selectedGender;
   String? _selectedActivity;
@@ -25,7 +43,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
     'Saúde',
     'Comércio',
     'Indústria',
-    'Outros'
+    'Outros',
   ];
 
   @override
@@ -33,35 +51,120 @@ class _OnboardingFormState extends State<OnboardingForm> {
     _nameController.dispose();
     _companyController.dispose();
     _dateController.dispose();
+    _cpfController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  void _showDatePicker(BuildContext context) {
+    showCupertinoModalPopup(
       context: context,
-      initialDate: _selectedDate ?? DateTime(2000),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.primary,
-              onPrimary: AppColors.background,
-              surface: const Color.fromARGB(255, 32, 32, 32),
-              onSurface: AppColors.textPrimary,
+      builder: (_) => Container(
+        height: 250,
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: Column(
+          children: [
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: CupertinoColors.quaternarySystemFill.resolveFrom(
+                  context,
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: CupertinoColors.separator.resolveFrom(context),
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CupertinoButton(
+                    child: const Text('OK'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: child!,
-        );
-      },
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _selectedDate ?? DateTime(2000),
+                minimumYear: 1900,
+                maximumYear: DateTime.now().year,
+                onDateTimeChanged: (DateTime picked) {
+                  setState(() {
+                    _selectedDate = picked;
+                    _dateController.text = DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(picked);
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
+  }
+
+  void _showPicker(
+    BuildContext context,
+    List<String> items,
+    String? currentValue,
+    ValueChanged<String> onSelected,
+  ) {
+    int selectedIndex = currentValue != null ? items.indexOf(currentValue) : 0;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Container(
+        height: 250,
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: Column(
+          children: [
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: CupertinoColors.quaternarySystemFill.resolveFrom(
+                  context,
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: CupertinoColors.separator.resolveFrom(context),
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CupertinoButton(
+                    child: const Text('OK'),
+                    onPressed: () {
+                      onSelected(items[selectedIndex]);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CupertinoPicker(
+                itemExtent: 32,
+                scrollController: FixedExtentScrollController(
+                  initialItem: selectedIndex,
+                ),
+                onSelectedItemChanged: (int index) {
+                  selectedIndex = index;
+                },
+                children: items
+                    .map((text) => Center(child: Text(text)))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,136 +172,183 @@ class _OnboardingFormState extends State<OnboardingForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Nome completo ──
-        _buildLabel('Nome completo'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _nameController,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          decoration: const InputDecoration(
-            hintText: 'Seu nome completo',
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        // ── Idade (Data) ──
-        _buildLabel('Idade'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _dateController,
-          readOnly: true,
-          onTap: () => _selectDate(context),
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          decoration: const InputDecoration(
-            hintText: 'DD/MM/AAAA',
-            suffixIcon: Icon(
-              Icons.calendar_today,
-              color: AppColors.textSecondary,
-              size: 18,
+        if (widget.step == 0)
+          _buildGroupedContainer([
+            // ── Nome completo ──
+            _buildInputRow(
+              label: 'Nome completo',
+              icon: LucideIcons.lock,
+              child: CupertinoTextField(
+                controller: _nameController,
+                placeholder: 'Seu nome completo',
+                padding: EdgeInsets.zero,
+                decoration: null,
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+              ),
             ),
-          ),
-        ),
 
-        const SizedBox(height: 20),
+            // ── Idade (Data) ──
+            _buildInputRow(
+              label: 'Idade',
+              child: GestureDetector(
+                onTap: () => _showDatePicker(context),
+                child: AbsorbPointer(
+                  child: CupertinoTextField(
+                    controller: _dateController,
+                    placeholder: 'DD/MM/AAAA',
+                    padding: EdgeInsets.zero,
+                    decoration: null,
+                    style: const TextStyle(
+                      color: CupertinoColors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
-        // ── Gênero ──
-        _buildLabel('Gênero'),
-        const SizedBox(height: 8),
-        _buildDropdown(
-          value: _selectedGender,
-          items: _genders,
-          hint: 'Selecione seu gênero',
-          onChanged: (val) => setState(() => _selectedGender = val),
-        ),
+            // ── CPF ──
+            _buildInputRow(
+              label: 'CPF',
+              child: CupertinoTextField(
+                controller: _cpfController,
+                placeholder: '000.000.000-00',
+                padding: EdgeInsets.zero,
+                decoration: null,
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+                keyboardType: TextInputType.number,
+                inputFormatters: [_cpfFormatter],
+              ),
+            ),
 
-        const SizedBox(height: 20),
+            // ── Gênero ──
+            _buildInputRow(
+              label: 'Gênero',
+              child: _buildSelectField(
+                context: context,
+                value: _selectedGender,
+                items: _genders,
+                hint: 'Selecione seu gênero',
+                onSelected: (val) => setState(() => _selectedGender = val),
+              ),
+            ),
+          ])
+        else
+          _buildGroupedContainer([
+            // ── Nome da empresa ──
+            _buildInputRow(
+              label: 'Nome do negócio',
+              child: CupertinoTextField(
+                controller: _companyController,
+                placeholder: 'Nome da sua empresa',
+                padding: EdgeInsets.zero,
+                decoration: null,
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+              ),
+            ),
 
-        // ── Ramo de atuação ──
-        _buildLabel('Ramo de atuação'),
-        const SizedBox(height: 8),
-        _buildDropdown(
-          value: _selectedActivity,
-          items: _activities,
-          hint: 'Selecione sua área',
-          onChanged: (val) => setState(() => _selectedActivity = val),
-        ),
-
-        const SizedBox(height: 20),
-
-        // ── Nome da empresa (Opcional) ──
-        _buildLabel('Nome da empresa (opcional)'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _companyController,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          decoration: const InputDecoration(
-            hintText: 'Nome da sua empresa',
-          ),
-        ),
+            // ── Ramo de atuação ──
+            _buildInputRow(
+              label: 'Ramo de atuação',
+              child: _buildSelectField(
+                context: context,
+                value: _selectedActivity,
+                items: _activities,
+                hint: 'Selecione sua área',
+                onSelected: (val) => setState(() => _selectedActivity = val),
+              ),
+            ),
+          ]),
 
         const SizedBox(height: 32),
-
-        // ── Botão Continuar ──
-        ElevatedButton(
-          onPressed: () {
-            // TODO: Submit onboarding
-          },
-          child: const Text(
-            'Continuar',
-            style: TextStyle(
-              color: AppColors.background,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ],
     );
   }
 
-  Widget _buildLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
+  Widget _buildGroupedContainer(List<Widget> children) {
+    List<Widget> itemsWithDividers = [];
+    for (int i = 0; i < children.length; i++) {
+      itemsWithDividers.add(children[i]);
+      if (i < children.length - 1) {
+        itemsWithDividers.add(
+          const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Divider(height: 1, thickness: 0.5, color: Color(0xFFE5E5E5)),
+          ),
+        );
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E5E5), width: 1),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: itemsWithDividers,
       ),
     );
   }
 
-  Widget _buildDropdown({
+  Widget _buildInputRow({
+    required String label,
+    required Widget child,
+    IconData? icon,
+    Widget? trailing,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: 14, color: Colors.black),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(child: child),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 12), trailing],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectField({
+    required BuildContext context,
     required String? value,
     required List<String> items,
     required String hint,
-    required ValueChanged<String?> onChanged,
+    required ValueChanged<String> onSelected,
   }) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      items: items.map((String item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(
-            item,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          ),
-        );
-      }).toList(),
-      onChanged: onChanged,
-      dropdownColor: const Color.fromARGB(255, 32, 32, 32),
-      icon: const Icon(
-        Icons.keyboard_arrow_down,
-        color: AppColors.textSecondary,
-        size: 20,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        // Remover constraints de altura para o dropdown se necessário,
-        // mas aqui estamos usando o tema padrão.
-        // Se o tema estiver com maxHeight 36, o dropdown pode ficar estranho.
-        // Vou forçar uma altura mínima no formulário ou sobrescrever aqui se falhar.
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+    return GestureDetector(
+      onTap: () => _showPicker(context, items, value, onSelected),
+      child: Text(
+        value ?? hint,
+        style: TextStyle(
+          color: value != null ? Colors.black : const Color(0xFF9E9E9E),
+          fontSize: 13,
+        ),
       ),
     );
   }

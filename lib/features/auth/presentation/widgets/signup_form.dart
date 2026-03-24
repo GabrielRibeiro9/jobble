@@ -78,7 +78,7 @@ class _SignupFormState extends State<SignupForm> {
                 fontSize: 14,
               ),
               decoration: const InputDecoration(
-                hintText: 'exemplo@basebrasil.com.br',
+                hintText: 'email@basebrasil.com.br',
               ),
             ),
 

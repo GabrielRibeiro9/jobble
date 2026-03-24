@@ -102,8 +102,8 @@ class LoginPage extends StatelessWidget {
                                         children: [
                                           Expanded(
                                             child: Divider(
-                                              color: AppColors.border,
-                                              thickness: 0.3,
+                                              color: AppColors.borderLight,
+                                              thickness: 1.0,
                                             ),
                                           ),
                                           Padding(
@@ -121,8 +121,8 @@ class LoginPage extends StatelessWidget {
                                           ),
                                           Expanded(
                                             child: Divider(
-                                              color: AppColors.border,
-                                              thickness: 0.3,
+                                              color: AppColors.borderLight,
+                                              thickness: 1.0,
                                             ),
                                           ),
                                         ],
