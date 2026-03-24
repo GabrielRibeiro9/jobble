@@ -103,6 +103,8 @@ class _SignupFormState extends State<SignupForm> {
               ),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
                     color: AppColors.textSecondary,
@@ -143,6 +145,8 @@ class _SignupFormState extends State<SignupForm> {
               ),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: Icon(
                     _obscureConfirmPassword
                         ? Icons.visibility

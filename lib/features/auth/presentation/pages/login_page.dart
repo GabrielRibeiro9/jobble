@@ -52,13 +52,13 @@ class LoginPage extends StatelessWidget {
                                         'Acesse sua conta',
                                         style: const TextStyle(
                                           color: AppColors.textPrimary,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w600,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
                                       const Text(
-                                        'Entre para acompanhar seus trabalhos',
+                                        'Entre para acompanhar seu trabalho',
                                         style: TextStyle(
                                           color: AppColors.textSecondary,
                                           fontSize: 14,

@@ -54,8 +54,8 @@ class SignupPage extends StatelessWidget {
                                         'Vamos Começar',
                                         style: TextStyle(
                                           color: AppColors.textPrimary,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w600,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -74,19 +74,6 @@ class SignupPage extends StatelessWidget {
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor:
                                               AppColors.textPrimary,
-                                          minimumSize: const Size(
-                                            double.infinity,
-                                            48,
-                                          ),
-                                          side: const BorderSide(
-                                            color: AppColors.border,
-                                            width: 0.3,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
                                           textStyle: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,

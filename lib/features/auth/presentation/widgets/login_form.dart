@@ -39,16 +39,17 @@ class _LoginFormState extends State<LoginForm> {
         if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
           tokenService.saveToken(state.accessToken);
-          
-          final completed = tokenService.isOnboardingCompleted(state.accessToken);
-          
+
+          final completed = tokenService.isOnboardingCompleted(
+            state.accessToken,
+          );
+
           if (!mounted) return;
-          
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => completed 
-                  ? const HomePage() 
-                  : const OnboardingPage(),
+              builder: (context) =>
+                  completed ? const HomePage() : const OnboardingPage(),
             ),
           );
         }
@@ -75,7 +76,10 @@ class _LoginFormState extends State<LoginForm> {
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+              ),
               decoration: const InputDecoration(
                 hintText: 'email@basebrasil.com.br',
               ),
@@ -113,9 +117,14 @@ class _LoginFormState extends State<LoginForm> {
             TextField(
               controller: _passwordController,
               obscureText: _obscurePassword,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+              ),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
                     color: AppColors.textSecondary,
@@ -137,11 +146,11 @@ class _LoginFormState extends State<LoginForm> {
                   ? null
                   : () {
                       context.read<AuthBloc>().add(
-                            LoginSubmitted(
-                              email: _emailController.text,
-                              password: _passwordController.text,
-                            ),
-                          );
+                        LoginSubmitted(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        ),
+                      );
                     },
               child: state is AuthLoading
                   ? const SizedBox(
