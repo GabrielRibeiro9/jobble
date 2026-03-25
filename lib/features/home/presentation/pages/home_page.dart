@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -124,7 +125,15 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   _buildIconButton(Icons.menu),
                   _buildStatusToggle(),
-                  _buildIconButton(Icons.person, onPressed: () {}),
+                  _buildIconButton(
+                    Icons.person,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
