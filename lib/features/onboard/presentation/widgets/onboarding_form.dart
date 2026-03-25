@@ -25,9 +25,16 @@ class _OnboardingFormState extends State<OnboardingForm> {
   final _companyController = TextEditingController();
   final _dateController = TextEditingController();
   final _cpfController = TextEditingController();
+  final _cnpjController = TextEditingController();
 
   final _cpfFormatter = MaskTextInputFormatter(
     mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
+  final _cnpjFormatter = MaskTextInputFormatter(
+    mask: '##.###.###/####-##',
     filter: {"#": RegExp(r'[0-9]')},
     type: MaskAutoCompletionType.lazy,
   );
@@ -52,6 +59,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
     _companyController.dispose();
     _dateController.dispose();
     _cpfController.dispose();
+    _cnpjController.dispose();
     super.dispose();
   }
 
@@ -244,6 +252,20 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 padding: EdgeInsets.zero,
                 decoration: null,
                 style: const TextStyle(color: Colors.black, fontSize: 14),
+              ),
+            ),
+
+            // ── CNPJ (Opcional) ──
+            _buildInputRow(
+              label: 'CNPJ (Opcional)',
+              child: CupertinoTextField(
+                controller: _cnpjController,
+                placeholder: '00.000.000/0000-00',
+                padding: EdgeInsets.zero,
+                decoration: null,
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+                keyboardType: TextInputType.number,
+                inputFormatters: [_cnpjFormatter],
               ),
             ),
 

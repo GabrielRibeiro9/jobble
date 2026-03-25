@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -160,7 +161,7 @@ class _HomePageState extends State<HomePage> {
             ),
         ],
       ),
-      floatingActionButton: isOnline && !showRequest
+      floatingActionButton: !isOnline && !showRequest
           ? FloatingActionButton.extended(
               onPressed: simulateIncomingRequest,
               backgroundColor: Colors.blueAccent,
@@ -313,30 +314,32 @@ class _HomePageState extends State<HomePage> {
   Widget _buildOnlineBottomCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(32)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem(
-                'Ganhos (Hoje)',
-                'R\$ 0,00',
-                Icons.account_balance_wallet,
-              ),
-              _buildStatItem('Serviços', '0', Icons.assignment_turned_in),
-              _buildStatItem('Avaliação', '5.0', Icons.star),
-            ],
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem('Serviços', '0', LucideIcons.briefcase),
+                ),
+                Container(
+                  width: 1,
+                  height: double.infinity,
+                  color: AppColors.borderLight.withOpacity(0.5),
+                ),
+                Expanded(
+                  child: _buildStatItem('Avaliação', '5.0', LucideIcons.star),
+                ),
+              ],
+            ),
           ),
-          const SafeArea(child: SizedBox(height: 16)),
         ],
       ),
     );
@@ -344,16 +347,22 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: AppColors.textSecondary, size: 28),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: AppColors.textSecondary),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
