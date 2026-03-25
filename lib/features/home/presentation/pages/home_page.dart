@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,6 +15,68 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isOnline = false;
   bool showRequest = false;
+
+  // Map
+  final MapController _mapController = MapController();
+  LatLng? _currentPosition;
+  bool _isLoadingLocation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocation();
+  }
+
+  Future<void> _initLocation() async {
+    try {
+      final status = await Permission.locationWhenInUse.request();
+
+      if (!status.isGranted) {
+        _setDefaultLocation();
+        return;
+      }
+
+      // Tenta pegar a última posição conhecida primeiro (mais rápido, sem NMEA)
+      final lastPosition = await Geolocator.getLastKnownPosition();
+      if (lastPosition != null) {
+        setState(() {
+          _currentPosition = LatLng(
+            lastPosition.latitude,
+            lastPosition.longitude,
+          );
+          _isLoadingLocation = false;
+        });
+        return;
+      }
+
+      // Fallback: pega posição atual com timeout
+      final position =
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+            ),
+          ).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('Location timeout'),
+          );
+
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+        _isLoadingLocation = false;
+      });
+    } catch (e) {
+      debugPrint('Erro ao obter localização: $e');
+      _setDefaultLocation();
+    }
+  }
+
+  void _setDefaultLocation() {
+    setState(() {
+      // Default: São Paulo
+      _currentPosition = const LatLng(-23.5505, -46.6333);
+      _isLoadingLocation = false;
+    });
+  }
 
   void toggleOnline() {
     setState(() {
@@ -40,8 +106,8 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Map Background Placeholder
-          _buildMapPlaceholder(),
+          // 1. Real OpenStreetMap
+          _buildMap(),
 
           // 2. Dark Overlay if offline
           if (!isOnline) Container(color: Colors.black.withOpacity(0.6)),
@@ -102,30 +168,51 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildMapPlaceholder() {
-    return Container(
-      decoration: const BoxDecoration(color: AppColors.surfaceLight),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.map,
-              size: 80,
-              color: AppColors.textSecondary.withOpacity(0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Mapa / Sua localização',
-              style: TextStyle(
-                color: AppColors.textSecondary.withOpacity(0.5),
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+  Widget _buildMap() {
+    if (_isLoadingLocation) {
+      return Container(
+        color: AppColors.background,
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Colors.blueAccent),
+              SizedBox(height: 16),
+              Text(
+                'Carregando mapa...',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(initialCenter: _currentPosition!, initialZoom: 16),
+      children: [
+        TileLayer(
+          urlTemplate:
+              'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
+          userAgentPackageName: 'com.example.flutter_tcc',
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: _currentPosition!,
+              width: 40,
+              height: 40,
+              child: const Icon(
+                Icons.location_on,
+                color: Colors.blueAccent,
+                size: 40,
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 
