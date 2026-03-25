@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -83,14 +84,18 @@ class _ProfilePageState extends State<ProfilePage>
               delegate: _TabBarDelegate(
                 TabBar(
                   controller: _tabController,
-                  indicatorColor: Colors.blueAccent,
-                  indicatorWeight: 3,
-                  labelColor: Colors.blueAccent,
+                  dividerColor: Colors.transparent,
+                  indicatorColor: AppColors.textPrimary,
+                  indicatorWeight: 2,
+                  labelColor: AppColors.textPrimary,
                   unselectedLabelColor: AppColors.textSecondary,
                   tabs: const [
-                    Tab(icon: Icon(Icons.grid_on), text: 'Portfólio'),
-                    Tab(icon: Icon(Icons.star), text: 'Avaliações'),
-                    Tab(icon: Icon(Icons.info_outline), text: 'Sobre'),
+                    Tab(
+                      icon: Icon(LucideIcons.layout_dashboard),
+                      text: 'Portfólio',
+                    ),
+                    Tab(icon: Icon(LucideIcons.star), text: 'Avaliações'),
+                    Tab(icon: Icon(LucideIcons.info), text: 'Sobre'),
                   ],
                 ),
               ),
@@ -113,16 +118,7 @@ class _ProfilePageState extends State<ProfilePage>
 
   Widget _buildProfileHeader() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.blueAccent.withOpacity(0.3),
-            AppColors.background,
-          ],
-        ),
-      ),
+      color: AppColors.background,
       child: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -136,10 +132,9 @@ class _ProfilePageState extends State<ProfilePage>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.blueAccent, width: 3),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blueAccent.withOpacity(0.3),
+                        color: AppColors.textPrimary.withOpacity(0.1),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -147,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                   child: const CircleAvatar(
                     radius: 48,
-                    backgroundColor: AppColors.surfaceLight,
+                    backgroundColor: AppColors.surface,
                     child: Icon(
                       Icons.person,
                       size: 56,
@@ -163,12 +158,12 @@ class _ProfilePageState extends State<ProfilePage>
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: const BoxDecoration(
-                        color: Colors.blueAccent,
+                        color: AppColors.textPrimary,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.camera_alt,
-                        color: Colors.white,
+                        color: AppColors.background,
                         size: 18,
                       ),
                     ),
@@ -189,13 +184,13 @@ class _ProfilePageState extends State<ProfilePage>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(0.15),
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 _userSpecialty,
                 style: const TextStyle(
-                  color: Colors.blueAccent,
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -254,7 +249,7 @@ class _ProfilePageState extends State<ProfilePage>
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -449,10 +444,7 @@ class _ProfilePageState extends State<ProfilePage>
               const SizedBox(height: 4),
               const Text(
                 '127 avaliações',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -536,7 +528,7 @@ class _ProfilePageState extends State<ProfilePage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +537,7 @@ class _ProfilePageState extends State<ProfilePage>
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: AppColors.surfaceLight,
+                backgroundColor: AppColors.surface,
                 child: Text(
                   review.initials,
                   style: const TextStyle(
@@ -591,7 +583,7 @@ class _ProfilePageState extends State<ProfilePage>
           Text(
             review.service,
             style: const TextStyle(
-              color: Colors.blueAccent,
+              color: AppColors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -638,21 +630,21 @@ class _ProfilePageState extends State<ProfilePage>
           Icons.location_on,
           'Região de Atuação',
           _userRegion,
-          Colors.blueAccent,
+          AppColors.textPrimary.withOpacity(0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
           Icons.access_time,
           'Membro desde',
           'Janeiro 2024',
-          Colors.greenAccent,
+          AppColors.textPrimary.withOpacity(0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
           Icons.verified,
           'Verificação',
           'Documentos verificados ✓',
-          Colors.amber,
+          AppColors.textPrimary.withOpacity(0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
@@ -661,7 +653,7 @@ class _ProfilePageState extends State<ProfilePage>
           'Eletricista com mais de 8 anos de experiência em '
               'instalações residenciais e comerciais. Especialista em '
               'iluminação LED, quadros elétricos e manutenção preventiva.',
-          Colors.purpleAccent,
+          AppColors.textPrimary.withOpacity(0.1),
         ),
         const SizedBox(height: 32),
       ],
@@ -748,7 +740,7 @@ class _ProfilePageState extends State<ProfilePage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -828,7 +820,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.camera_alt,
                   'Alterar foto de perfil',
-                  Colors.blueAccent,
+                  AppColors.textPrimary.withOpacity(0.1),
                   () {
                     Navigator.pop(context);
                     _showChangePhotoDialog();
@@ -837,7 +829,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.person,
                   'Editar nome e especialidade',
-                  Colors.greenAccent,
+                  AppColors.textPrimary.withOpacity(0.1),
                   () {
                     Navigator.pop(context);
                     _showEditNameDialog();
@@ -846,7 +838,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.location_on,
                   'Alterar região de atuação',
-                  Colors.orangeAccent,
+                  AppColors.textPrimary.withOpacity(0.1),
                   () {
                     Navigator.pop(context);
                     _showEditRegionDialog();
@@ -855,7 +847,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.add_photo_alternate,
                   'Adicionar ao portfólio',
-                  Colors.purpleAccent,
+                  AppColors.textPrimary.withOpacity(0.1),
                   () {
                     Navigator.pop(context);
                     _showAddPortfolioSnackbar();
@@ -879,22 +871,16 @@ class _ProfilePageState extends State<ProfilePage>
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: color, size: 22),
+        child: Icon(icon, color: AppColors.textPrimary, size: 22),
       ),
       title: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 15,
-        ),
+        style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
       ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.textSecondary,
-      ),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       onTap: onTap,
     );
   }
@@ -918,10 +904,7 @@ class _ProfilePageState extends State<ProfilePage>
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.blueAccent,
-                ),
+                leading: const Icon(Icons.camera_alt, color: Colors.blueAccent),
                 title: const Text(
                   'Tirar foto',
                   style: TextStyle(color: AppColors.textPrimary),
@@ -986,17 +969,14 @@ class _ProfilePageState extends State<ProfilePage>
                 style: const TextStyle(color: AppColors.textPrimary),
                 decoration: InputDecoration(
                   labelText: 'Nome',
-                  labelStyle:
-                      const TextStyle(color: AppColors.textSecondary),
+                  labelStyle: const TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: AppColors.borderLight),
+                    borderSide: const BorderSide(color: AppColors.borderLight),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: Colors.blueAccent),
+                    borderSide: const BorderSide(color: Colors.blueAccent),
                   ),
                 ),
               ),
@@ -1006,17 +986,14 @@ class _ProfilePageState extends State<ProfilePage>
                 style: const TextStyle(color: AppColors.textPrimary),
                 decoration: InputDecoration(
                   labelText: 'Especialidade',
-                  labelStyle:
-                      const TextStyle(color: AppColors.textSecondary),
+                  labelStyle: const TextStyle(color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: AppColors.borderLight),
+                    borderSide: const BorderSide(color: AppColors.borderLight),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: Colors.blueAccent),
+                    borderSide: const BorderSide(color: Colors.blueAccent),
                   ),
                 ),
               ),
@@ -1125,9 +1102,7 @@ class _ProfilePageState extends State<ProfilePage>
   void _showAddPortfolioSnackbar() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Upload de fotos será integrado com o backend',
-        ),
+        content: Text('Upload de fotos será integrado com o backend'),
         backgroundColor: Colors.blueAccent,
       ),
     );
@@ -1257,10 +1232,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(
-      color: AppColors.background,
-      child: tabBar,
-    );
+    return Container(color: AppColors.background, child: tabBar);
   }
 
   @override

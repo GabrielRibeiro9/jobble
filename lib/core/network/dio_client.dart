@@ -1,16 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:io' show Platform;
 
 class DioClient {
   late final Dio _dio;
 
   DioClient() {
-    String baseUrl = 'http://localhost:3333';
-
-    if (!kIsWeb && Platform.isAndroid) {
-      baseUrl = 'http://10.0.2.2:3333';
-    }
+    const String baseUrl = 'https://base-prod.up.railway.app';
 
     _dio = Dio(
       BaseOptions(

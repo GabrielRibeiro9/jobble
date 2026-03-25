@@ -159,22 +159,33 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.bottomCenter,
               child: _buildIncomingRequestCard(),
             ),
-        ],
-      ),
-      floatingActionButton: !isOnline && !showRequest
-          ? FloatingActionButton.extended(
-              onPressed: simulateIncomingRequest,
-              backgroundColor: Colors.blueAccent,
-              icon: const Icon(Icons.notifications_active, color: Colors.white),
-              label: const Text(
-                'Simular Pedido',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+
+          // 6. Simulation button above card
+          if (isOnline && !showRequest)
+            Positioned(
+              bottom: 120,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: FloatingActionButton.extended(
+                  onPressed: simulateIncomingRequest,
+                  backgroundColor: Colors.blueAccent,
+                  icon: const Icon(
+                    Icons.notifications_active,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Simular Pedido',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            )
-          : null,
+            ),
+        ],
+      ),
     );
   }
 
@@ -253,7 +264,7 @@ class _HomePageState extends State<HomePage> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
         decoration: BoxDecoration(
-          color: isOnline ? Colors.blueAccent : AppColors.surface,
+          color: isOnline ? Colors.blue : AppColors.surface,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
@@ -264,9 +275,9 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: Text(
-          isOnline ? 'ONLINE' : 'OFFLINE',
+          isOnline ? 'Online' : 'Offline',
           style: TextStyle(
-            color: isOnline ? Colors.white : AppColors.textPrimary,
+            color: isOnline ? Colors.white : AppColors.textSecondary,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -315,61 +326,62 @@ class _HomePageState extends State<HomePage> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.all(Radius.circular(32)),
+        borderRadius: BorderRadius.all(Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildStatItem('Serviços', '0', LucideIcons.briefcase),
-                ),
-                Container(
-                  width: 1,
-                  height: double.infinity,
-                  color: AppColors.borderLight.withOpacity(0.5),
-                ),
-                Expanded(
-                  child: _buildStatItem('Avaliação', '5.0', LucideIcons.star),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value, IconData icon) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: AppColors.textSecondary),
-            const SizedBox(width: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 16,
+                children: [
+                  Expanded(child: _buildStatItem('Total Aprovado', 'R\$0.00')),
+                  Container(
+                    width: 1,
+                    height: double.infinity,
+                    color: AppColors.borderLight.withOpacity(0.5),
+                  ),
+                  Expanded(child: _buildStatItem('Avaliação Diária', '0.0')),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -379,7 +391,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.5),
@@ -395,6 +407,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -479,24 +492,6 @@ class _HomePageState extends State<HomePage> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: acceptOrRejectRequest,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: AppColors.borderLight),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'RECUSAR',
-                      style: TextStyle(color: AppColors.textPrimary),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
                   child: ElevatedButton(
                     onPressed: acceptOrRejectRequest,
                     style: ElevatedButton.styleFrom(
@@ -507,11 +502,11 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     child: const Text(
-                      'ACEITAR',
+                      'Ver Detalhes',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                     ),
                   ),
