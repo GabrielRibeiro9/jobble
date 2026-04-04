@@ -1,224 +1,214 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:flutter_tcc/core/constants/app_assets.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_tcc/features/auth/presentation/widgets/auth_error_card.dart';
-import 'package:flutter_tcc/features/auth/presentation/widgets/signup_form.dart';
+import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_email.dart';
+import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_otp.dart';
+import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_profile.dart';
+import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/core/services/token_service.dart';
+import 'package:flutter_tcc/injection_container.dart' as di;
 
-class SignupPage extends StatelessWidget {
+class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
   @override
+  State<SignupPage> createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
+  final PageController _pageController = PageController();
+  int _currentStep = 0;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _nameController.dispose();
+    _cpfController.dispose();
+    super.dispose();
+  }
+
+  void _onStep1Continue() {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('As senhas não coincidem'),
+          backgroundColor: context.colors.error,
+        ),
+      );
+      return;
+    }
+
+    context.read<AuthBloc>().add(
+          SignupSubmitted(
+            email: _emailController.text,
+            password: _passwordController.text,
+          ),
+        );
+  }
+
+  void _onStep2Continue(String code) {
+    context.read<AuthBloc>().add(
+          EmailVerificationSubmitted(
+            email: _emailController.text,
+            code: code,
+          ),
+        );
+  }
+
+  void _nextPage() {
+    if (_currentStep < 2) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _previousPage() {
+    if (_currentStep > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _onFinish() {
+    // After verification, we sign in to get the token and complete the flow
+    context.read<AuthBloc>().add(
+          LoginSubmitted(
+            email: _emailController.text,
+            password: _passwordController.text,
+          ),
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSignupStep1Success) {
+          _nextPage();
+        } else if (state is AuthVerificationSuccess) {
+          _nextPage();
+        } else if (state is AuthSuccess) {
+          final tokenService = di.sl<TokenService>();
+          tokenService.saveToken(state.accessToken);
+
+          final completed = tokenService.isOnboardingCompleted(
+            state.accessToken,
+          );
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) =>
+                  completed ? const HomePage() : const OnboardingPage(),
+            ),
+          );
+        } else if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: context.colors.error,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.colors.background,
+        appBar: AppBar(
+          backgroundColor: context.colors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: context.colors.textPrimary,
+              size: 20,
+            ),
+            onPressed: _previousPage,
+          ),
+          centerTitle: true,
+          title: Text(
+            'CADASTRAR CONTA',
+            style: TextStyle(
+              color: context.colors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+
+                return PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (int page) {
+                    setState(() {
+                      _currentStep = page;
+                    });
+                  },
+                  children: [
+                    Stack(
                       children: [
-                        const SizedBox(height: 32),
-
-                        // ── Logo ──
-                        Image.asset(AppAssets.logo, height: 24),
-
-                        const Spacer(),
-                        // ── Conteúdo Centralizado ──
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 340),
-                              child: BlocBuilder<AuthBloc, AuthState>(
-                                builder: (context, state) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (state is AuthFailure) ...[
-                                        AuthErrorCard(message: state.message),
-                                        const SizedBox(height: 32),
-                                      ],
-                                      // ── Title ──
-                                      const Text(
-                                        'Vamos Começar',
-                                        style: TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text(
-                                        'Crie uma nova conta',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-
-                                      const SizedBox(height: 32),
-
-                                      // ── Google button ──
-                                      OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor:
-                                              AppColors.textPrimary,
-                                          textStyle: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          // TODO: Google sign-in
-                                        },
-                                        icon: SvgPicture.asset(
-                                          AppAssets.googleIcon,
-                                          height: 18,
-                                          width: 18,
-                                        ),
-                                        label: const Text(
-                                          'Começar com Google',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                      ),
-
-                                      const SizedBox(height: 24),
-
-                                      // ── Divider ──
-                                      const Row(
-                                        children: [
-                                          Expanded(
-                                            child: Divider(
-                                              color: AppColors.borderLight,
-                                              thickness: 1.0,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                            ),
-                                            child: Text(
-                                              'Ou continue com',
-                                              style: TextStyle(
-                                                color: AppColors.textPrimary,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Divider(
-                                              color: AppColors.borderLight,
-                                              thickness: 1.0,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 24),
-
-                                      // ── Signup form ──
-                                      const SignupForm(),
-
-                                      const SizedBox(height: 24),
-
-                                      // ── Login link ──
-                                      Center(
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Text(
-                                              'Já tem uma conta? ',
-                                              style: TextStyle(
-                                                color: AppColors.textSecondary,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text(
-                                                'Entrar',
-                                                style: TextStyle(
-                                                  color: AppColors.textPrimary,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  decoration:
-                                                      TextDecoration.underline,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
+                        SignupStepEmail(
+                          emailController: _emailController,
+                          passwordController: _passwordController,
+                          confirmPasswordController: _confirmPasswordController,
+                          onContinue: isLoading ? () {} : _onStep1Continue,
                         ),
-
-                        const Spacer(),
-                        // ── Footer ──
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 32),
-                          child: Center(
-                            child: Text.rich(
-                              const TextSpan(
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: 'Ao continuar, você concorda com os ',
-                                  ),
-                                  TextSpan(
-                                    text: 'Termos de Serviço',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  TextSpan(text: '\ne a '),
-                                  TextSpan(
-                                    text: 'Política de Privacidade',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  TextSpan(text: ' da Base Brasil.'),
-                                ],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
+                        if (isLoading && _currentStep == 0)
+                          const Center(child: CircularProgressIndicator()),
                       ],
                     ),
-                  ),
-                ),
-              ),
-            );
-          },
+                    Stack(
+                      children: [
+                        SignupStepOtp(
+                          email: _emailController.text,
+                          onContinue: isLoading ? (_) {} : _onStep2Continue,
+                        ),
+                        if (isLoading && _currentStep == 1)
+                          const Center(child: CircularProgressIndicator()),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        SignupStepProfile(
+                          nameController: _nameController,
+                          cpfController: _cpfController,
+                          onFinish: isLoading ? () {} : _onFinish,
+                        ),
+                        if (isLoading && _currentStep == 2)
+                          const Center(child: CircularProgressIndicator()),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

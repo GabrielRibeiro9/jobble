@@ -50,17 +50,17 @@ class LoginPage extends StatelessWidget {
                                       ],
                                       Text(
                                         'Acesse sua conta',
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
+                                        style: TextStyle(
+                                          color: context.colors.textPrimary,
                                           fontSize: 24,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      const Text(
+                                      SizedBox(height: 4),
+                                      Text(
                                         'Entre para acompanhar seu trabalho',
                                         style: TextStyle(
-                                          color: AppColors.textSecondary,
+                                          color: context.colors.textSecondary,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -71,8 +71,8 @@ class LoginPage extends StatelessWidget {
                                       OutlinedButton.icon(
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor:
-                                              AppColors.textPrimary,
-                                          textStyle: const TextStyle(
+                                              context.colors.textPrimary,
+                                          textStyle: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -85,24 +85,24 @@ class LoginPage extends StatelessWidget {
                                           height: 18,
                                           width: 18,
                                         ),
-                                        label: const Text(
+                                        label: Text(
                                           'Entrar com Google',
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
-                                            color: AppColors.textPrimary,
+                                            color: context.colors.textPrimary,
                                           ),
                                         ),
                                       ),
 
-                                      const SizedBox(height: 24),
+                                      SizedBox(height: 24),
 
                                       // ── Divider ──
-                                      const Row(
+                                      Row(
                                         children: [
                                           Expanded(
                                             child: Divider(
-                                              color: AppColors.borderLight,
+                                              color: context.colors.borderLight,
                                               thickness: 1.0,
                                             ),
                                           ),
@@ -113,7 +113,7 @@ class LoginPage extends StatelessWidget {
                                             child: Text(
                                               'Ou continue com',
                                               style: TextStyle(
-                                                color: AppColors.textPrimary,
+                                                color: context.colors.textPrimary,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -121,7 +121,7 @@ class LoginPage extends StatelessWidget {
                                           ),
                                           Expanded(
                                             child: Divider(
-                                              color: AppColors.borderLight,
+                                              color: context.colors.borderLight,
                                               thickness: 1.0,
                                             ),
                                           ),
@@ -140,10 +140,10 @@ class LoginPage extends StatelessWidget {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Text(
+                                            Text(
                                               'Não tem uma conta? ',
                                               style: TextStyle(
-                                                color: AppColors.textSecondary,
+                                                color: context.colors.textSecondary,
                                                 fontSize: 14,
                                               ),
                                             ),
@@ -157,10 +157,10 @@ class LoginPage extends StatelessWidget {
                                                   ),
                                                 );
                                               },
-                                              child: const Text(
+                                              child: Text(
                                                 'Cadastre-se',
                                                 style: TextStyle(
-                                                  color: AppColors.textPrimary,
+                                                  color: context.colors.textPrimary,
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w500,
                                                   decoration:
@@ -185,9 +185,9 @@ class LoginPage extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 32),
                           child: Center(
                             child: Text.rich(
-                              const TextSpan(
+                              TextSpan(
                                 style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: context.colors.textSecondary,
                                   fontSize: 12,
                                 ),
                                 children: [
@@ -199,7 +199,7 @@ class LoginPage extends StatelessWidget {
                                     text: 'Termos de Serviço',
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.textSecondary,
+                                      decorationColor: context.colors.textSecondary,
                                     ),
                                   ),
                                   TextSpan(text: ' e a '),
@@ -207,7 +207,7 @@ class LoginPage extends StatelessWidget {
                                     text: 'Política de Privacidade',
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.textSecondary,
+                                      decorationColor: context.colors.textSecondary,
                                     ),
                                   ),
                                 ],

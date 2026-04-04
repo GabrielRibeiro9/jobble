@@ -74,6 +74,7 @@ flutter:
   assets:
     - assets/images/base-brasil-white.png
     - assets/images/google.svg
+    - assets/images/intro_bg.png
     - assets/images/portfolio/
 
   # An image asset can refer to one or more resolution-specific "variants", see

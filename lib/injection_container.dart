@@ -5,9 +5,12 @@ import 'package:flutter_tcc/features/auth/data/repositories/auth_repository_impl
 import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
+
+import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -18,12 +21,14 @@ Future<void> init() async {
     () => AuthBloc(
       loginUseCase: sl(),
       signupUseCase: sl(),
+      verifyEmailUseCase: sl(),
     ),
   );
 
   // Use cases
   sl.registerLazySingleton(() => LoginUseCase(repository: sl()));
   sl.registerLazySingleton(() => SignupUseCase(repository: sl()));
+  sl.registerLazySingleton(() => VerifyEmailUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -38,4 +43,5 @@ Future<void> init() async {
   // Core
   sl.registerLazySingleton(() => DioClient());
   sl.registerLazySingleton(() => TokenService());
+  sl.registerLazySingleton(() => ThemeCubit());
 }

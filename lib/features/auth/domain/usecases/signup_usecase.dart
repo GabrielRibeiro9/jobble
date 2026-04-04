@@ -1,4 +1,3 @@
-import 'package:flutter_tcc/features/auth/data/models/login_response.dart';
 import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.dart';
 
 class SignupUseCase {
@@ -6,11 +5,12 @@ class SignupUseCase {
 
   SignupUseCase({required this.repository});
 
-  Future<LoginResponse> execute(
+  Future<void> execute(
     String? name,
     String email,
-    String password,
-  ) async {
-    return await repository.signup(name, email, password);
+    String password, {
+    String? cpf,
+  }) async {
+    await repository.signup(name, email, password, cpf: cpf);
   }
 }

@@ -6,7 +6,8 @@ import 'package:flutter_tcc/core/network/dio_client.dart';
 
 abstract class AuthRemoteDataSource {
   Future<LoginResponse> login(LoginRequest request);
-  Future<LoginResponse> signup(SignupRequest request);
+  Future<void> signup(SignupRequest request);
+  Future<void> verifyEmail(String email, String code);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -37,14 +38,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<LoginResponse> signup(SignupRequest request) async {
+  Future<void> signup(SignupRequest request) async {
     try {
-      final response = await dioClient.dio.post(
-        '/auth/signup',
-        data: request.toJson(),
-      );
+      await dioClient.dio.post('/auth/signup', data: request.toJson());
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final message = e.response?.data['message'];
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-      return LoginResponse.fromJson(response.data);
+  @override
+  Future<void> verifyEmail(String email, String code) async {
+    try {
+      await dioClient.dio.post(
+        '/auth/verify',
+        data: {'email': email, 'code': code},
+      );
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         final message = e.response?.data['message'];

@@ -17,13 +17,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<LoginResponse> signup(
+  Future<void> signup(
     String? name,
     String email,
-    String password,
-  ) async {
-    return await remoteDataSource.signup(
-      SignupRequest(name: name, email: email, password: password),
+    String password, {
+    String? cpf,
+  }) async {
+    await remoteDataSource.signup(
+      SignupRequest(name: name, email: email, password: password, cpf: cpf),
     );
+  }
+
+  @override
+  Future<void> verifyEmail(String email, String code) async {
+    await remoteDataSource.verifyEmail(email, code);
   }
 }

@@ -65,7 +65,7 @@ class _LoginFormState extends State<LoginForm> {
                 Text(
                   'E-mail',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -76,13 +76,8 @@ class _LoginFormState extends State<LoginForm> {
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
-              decoration: const InputDecoration(
-                hintText: 'email@basebrasil.com.br',
-              ),
+              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
+              decoration: InputDecoration(hintText: 'email@basebrasil.com.br'),
             ),
 
             const SizedBox(height: 20),
@@ -94,7 +89,7 @@ class _LoginFormState extends State<LoginForm> {
                 Text(
                   'Senha',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -106,7 +101,7 @@ class _LoginFormState extends State<LoginForm> {
                   child: Text(
                     'Esqueceu sua senha?',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -117,17 +112,14 @@ class _LoginFormState extends State<LoginForm> {
             TextField(
               controller: _passwordController,
               obscureText: _obscurePassword,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -153,18 +145,18 @@ class _LoginFormState extends State<LoginForm> {
                       );
                     },
               child: state is AuthLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.background,
+                        color: context.colors.background,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Entrar',
                       style: TextStyle(
-                        color: AppColors.background,
+                        color: context.colors.background,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),

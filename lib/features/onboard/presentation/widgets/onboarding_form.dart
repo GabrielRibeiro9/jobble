@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:flutter_tcc/core/theme/app_colors.dart';
 
 class OnboardingForm extends StatefulWidget {
   final int step;
@@ -191,7 +192,10 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 placeholder: 'Seu nome completo',
                 padding: EdgeInsets.zero,
                 decoration: null,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 14,
+                ),
               ),
             ),
 
@@ -206,8 +210,12 @@ class _OnboardingFormState extends State<OnboardingForm> {
                     placeholder: 'DD/MM/AAAA',
                     padding: EdgeInsets.zero,
                     decoration: null,
-                    style: const TextStyle(
-                      color: CupertinoColors.black,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
+                      fontSize: 14,
+                    ),
+                    placeholderStyle: TextStyle(
+                      color: context.colors.textHint,
                       fontSize: 14,
                     ),
                   ),
@@ -223,7 +231,14 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 placeholder: '000.000.000-00',
                 padding: EdgeInsets.zero,
                 decoration: null,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 14,
+                ),
+                placeholderStyle: TextStyle(
+                  color: context.colors.textHint,
+                  fontSize: 14,
+                ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [_cpfFormatter],
               ),
@@ -251,7 +266,14 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 placeholder: 'Nome da sua empresa',
                 padding: EdgeInsets.zero,
                 decoration: null,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 14,
+                ),
+                placeholderStyle: TextStyle(
+                  color: context.colors.textHint,
+                  fontSize: 14,
+                ),
               ),
             ),
 
@@ -263,7 +285,14 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 placeholder: '00.000.000/0000-00',
                 padding: EdgeInsets.zero,
                 decoration: null,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 14,
+                ),
+                placeholderStyle: TextStyle(
+                  color: context.colors.textHint,
+                  fontSize: 14,
+                ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [_cnpjFormatter],
               ),
@@ -293,9 +322,13 @@ class _OnboardingFormState extends State<OnboardingForm> {
       itemsWithDividers.add(children[i]);
       if (i < children.length - 1) {
         itemsWithDividers.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 16),
-            child: Divider(height: 1, thickness: 0.5, color: Color(0xFFE5E5E5)),
+            child: Divider(
+              height: 1,
+              thickness: 0.5,
+              color: context.colors.border,
+            ),
           ),
         );
       }
@@ -303,9 +336,9 @@ class _OnboardingFormState extends State<OnboardingForm> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 1),
+        border: Border.all(color: context.colors.border, width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -331,8 +364,8 @@ class _OnboardingFormState extends State<OnboardingForm> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: context.colors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -341,7 +374,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
                 Row(
                   children: [
                     if (icon != null) ...[
-                      Icon(icon, size: 14, color: Colors.black),
+                      Icon(icon, size: 14, color: context.colors.textPrimary),
                       const SizedBox(width: 8),
                     ],
                     Expanded(child: child),
@@ -368,7 +401,9 @@ class _OnboardingFormState extends State<OnboardingForm> {
       child: Text(
         value ?? hint,
         style: TextStyle(
-          color: value != null ? Colors.black : const Color(0xFF9E9E9E),
+          color: value != null
+              ? context.colors.textPrimary
+              : context.colors.textHint,
           fontSize: 13,
         ),
       ),

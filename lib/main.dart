@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tcc/core/theme/app_theme.dart';
-import 'package:flutter_tcc/features/auth/presentation/pages/login_page.dart';
+import 'package:flutter_tcc/features/onboard/presentation/pages/intro_page.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
-
+import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
@@ -17,13 +17,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => di.sl<AuthBloc>(),
-      child: MaterialApp(
-        title: 'Base Brasil',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
-        home: const LoginPage(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => di.sl<AuthBloc>()),
+        BlocProvider(create: (_) => di.sl<ThemeCubit>()),
+      ],
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'Base Brasil',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeMode,
+            home: const IntroPage(),
+          );
+        },
       ),
     );
   }

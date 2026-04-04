@@ -11,16 +11,16 @@ class AuthErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.errorBackground,
-        border: Border.all(color: AppColors.errorBorder, width: 1),
+        color: context.colors.errorBackground,
+        border: Border.all(color: context.colors.errorBorder, width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_rounded,
-            color: AppColors.error,
+            color: context.colors.error,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -29,10 +29,10 @@ class AuthErrorCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Falha ao entrar!',
                   style: TextStyle(
-                    color: AppColors.error,
+                    color: context.colors.error,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -40,8 +40,8 @@ class AuthErrorCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: const TextStyle(
-                    color: AppColors.error,
+                  style: TextStyle(
+                    color: context.colors.error,
                     fontSize: 14,
                     height: 1.4,
                   ),

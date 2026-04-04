@@ -1,11 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
+import 'package:flutter_tcc/core/widgets/star_rating.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -105,14 +108,19 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: Stack(
         children: [
           // 1. Real OpenStreetMap
           _buildMap(),
 
-          // 2. Dark Overlay if offline
-          if (!isOnline) Container(color: Colors.black.withOpacity(0.6)),
+          // 2. Adaptive Overlay if offline
+          if (!isOnline)
+            Container(
+              color: context.colors.background.withOpacity(
+                Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.4,
+              ),
+            ),
 
           // 3. Top Action Bar
           SafeArea(
@@ -125,13 +133,13 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildIconButton(Icons.menu),
-                  _buildStatusToggle(),
+                  _buildEarningsBadge(),
                   _buildIconButton(
-                    Icons.person,
+                    LucideIcons.settings,
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                        MaterialPageRoute(builder: (_) => const SettingsPage()),
                       );
                     },
                   ),
@@ -140,17 +148,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // 4. Bottom Cards (Online / Offline status)
-          if (!isOnline && !showRequest)
+          // 4. Bottom Controls
+          if (!showRequest)
             Align(
               alignment: Alignment.bottomCenter,
-              child: _buildOfflineBottomCard(),
-            ),
-
-          if (isOnline && !showRequest)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: _buildOnlineBottomCard(),
+              child: _buildBottomControls(),
             ),
 
           // 5. Incoming Request Overlay
@@ -163,21 +165,21 @@ class _HomePageState extends State<HomePage> {
           // 6. Simulation button above card
           if (isOnline && !showRequest)
             Positioned(
-              bottom: 120,
-              left: 0,
-              right: 0,
+              top: 120,
+              right: 32,
               child: Center(
                 child: FloatingActionButton.extended(
                   onPressed: simulateIncomingRequest,
-                  backgroundColor: Colors.blueAccent,
-                  icon: const Icon(
+                  backgroundColor: context.colors.themePrimary,
+                  elevation: 0,
+                  icon: Icon(
                     Icons.notifications_active,
-                    color: Colors.white,
+                    color: context.colors.onPrimary,
                   ),
-                  label: const Text(
+                  label: Text(
                     'Simular Pedido',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.colors.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -192,16 +194,19 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMap() {
     if (_isLoadingLocation) {
       return Container(
-        color: AppColors.background,
-        child: const Center(
+        color: context.colors.background,
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: Colors.blueAccent),
+              CircularProgressIndicator(color: context.colors.themePrimary),
               SizedBox(height: 16),
               Text(
                 'Carregando mapa...',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textSecondary,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -209,13 +214,17 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final urlTemplate = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(initialCenter: _currentPosition!, initialZoom: 16),
       children: [
         TileLayer(
-          urlTemplate:
-              'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          urlTemplate: urlTemplate,
           subdomains: const ['a', 'b', 'c', 'd'],
           userAgentPackageName: 'com.example.flutter_tcc',
         ),
@@ -223,12 +232,61 @@ class _HomePageState extends State<HomePage> {
           markers: [
             Marker(
               point: _currentPosition!,
-              width: 40,
-              height: 40,
-              child: const Icon(
-                Icons.location_on,
-                color: Colors.blueAccent,
-                size: 40,
+              width: 120,
+              height: 120,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  // Ponto de localização (centralizado no ponto GPS)
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? context.colors.textPrimary.withOpacity(0.2)
+                          : context.colors.themePrimary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: context.colors.themePrimary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: context.colors.background,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Avatar subindo a partir do ponto central
+                  Transform.translate(
+                    offset: const Offset(0, -42),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: context.colors.textPrimary,
+                          width: 3,
+                        ),
+                      ),
+                      child: const ProfileAvatar(
+                        size: 56,
+                        imageUrl:
+                            'https://github.com/filiperotherds.png', // Opcional para mostrar a imagem
+                        fallbackName: 'Você',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -240,147 +298,154 @@ class _HomePageState extends State<HomePage> {
   Widget _buildIconButton(IconData icon, {VoidCallback? onPressed}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: context.colors.border,
+          width: 1,
+        ),
       ),
       child: IconButton(
-        icon: Icon(icon, color: AppColors.textPrimary),
+        icon: Icon(icon, color: context.colors.textPrimary),
         onPressed: onPressed ?? () {},
       ),
     );
   }
 
-  Widget _buildStatusToggle() {
+  void _centerMap() {
+    if (_currentPosition != null) {
+      _mapController.move(_currentPosition!, 16);
+    }
+  }
+
+  Widget _buildEarningsBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: context.colors.border,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        'R\$ 150,00',
+        style: TextStyle(
+          color: context.colors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomControls() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 16,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildFloatingButton(Icons.help_outline, onPressed: () {}),
+              _buildFloatingButton(Icons.my_location, onPressed: _centerMap),
+            ],
+          ),
+          _buildMainToggleButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingButton(
+    IconData icon, {
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: context.colors.textPrimary.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: IconButton(
+        iconSize: 20,
+        icon: Icon(icon, color: context.colors.textPrimary),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildMainToggleButton() {
     return GestureDetector(
       onTap: toggleOnline,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: isOnline ? 20 : 0),
+        height: 56,
+        width: double.infinity,
         decoration: BoxDecoration(
-          color: isOnline ? Colors.blue : AppColors.surface,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Text(
-          isOnline ? 'Online' : 'Offline',
-          style: TextStyle(
-            color: isOnline ? Colors.white : AppColors.textSecondary,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+          color: isOnline
+              ? context.colors.themePrimary
+              : context.colors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isOnline
+                ? Colors.transparent
+                : context.colors.border,
+            width: 1,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildOfflineBottomCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.bedtime, size: 48, color: AppColors.textSecondary),
-          const SizedBox(height: 16),
-          const Text(
-            'Você está offline',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Fique online para receber solicitações de serviços.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          ),
-          const SafeArea(child: SizedBox(height: 16)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOnlineBottomCard() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.all(Radius.circular(28)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IntrinsicHeight(
-              child: Row(
+        child: isOnline
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 16,
                 children: [
-                  Expanded(child: _buildStatItem('Total Aprovado', 'R\$0.00')),
-                  Container(
-                    width: 1,
-                    height: double.infinity,
-                    color: AppColors.borderLight.withOpacity(0.5),
+                  Icon(
+                    LucideIcons.power,
+                    color: context.colors.onPrimary,
+                    size: 16,
                   ),
-                  Expanded(child: _buildStatItem('Avaliação Diária', '0.0')),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Online',
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.power_off,
+                    color: context.colors.textSecondary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Offline',
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -388,134 +453,311 @@ class _HomePageState extends State<HomePage> {
   Widget _buildIncomingRequestCard() {
     return Container(
       margin: const EdgeInsets.all(16).copyWith(bottom: 32),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.2),
-            blurRadius: 10,
-            spreadRadius: -5,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: context.colors.border,
+                width: 1,
+              ),
+            ),
+            child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.build,
-                    color: Colors.blueAccent,
-                    size: 32,
+                const ProfileAvatar(
+                  size: 48,
+                  fallbackName: 'José da Silva',
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'José da Silva',
+                      style: TextStyle(
+                        color: context.colors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const StarRating(rating: 3.7, hiring: 14),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: context.colors.border,
+                width: 1,
+              ),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 16,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Categoria',
+                          style: TextStyle(
+                            color: context.colors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          'Serviços Elétricos',
+                          style: TextStyle(
+                            color: context.colors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Botao para fechar o card
+                    IconButton(
+                      onPressed: acceptOrRejectRequest,
+                      icon: const Icon(Icons.close),
+                      iconSize: 16,
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: context.colors.textPrimary.withOpacity(
+                          0.1,
+                        ),
+                        foregroundColor: context.colors.textPrimary,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'Aprox. 17 min de distância',
+                  style: TextStyle(
+                    color: context.colors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 16),
-                const Expanded(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Nova Solicitação!',
-                        style: TextStyle(
-                          color: Colors.blueAccent,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      IntrinsicHeight(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 16,
+                          children: [
+                            SizedBox(
+                              width: 8,
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    top: 20,
+                                    bottom: 0,
+                                    left: 3,
+                                    child: Container(
+                                      width: 2,
+                                      color: context.colors.textSecondary,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 6,
+                                    left: 0,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: context.colors.textPrimary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  spacing: 4,
+                                  children: [
+                                    Text(
+                                      'Descrição do serviço',
+                                      style: TextStyle(
+                                        color: context.colors.textPrimary,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Instalação de chuveiro elétrico, troca de tomadas e interruptores, reparo de curto-circuito, instalação de luminárias e ventiladores de teto, reparo de chuveiro elétrico.',
+                                      style: TextStyle(
+                                        color: context.colors.textSecondary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Serviço de Encanador',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Conserto de vazamento - Urgente',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
+                      IntrinsicHeight(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 16,
+                          children: [
+                            SizedBox(
+                              width: 8,
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    top: 6,
+                                    left: 0,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: context.colors.textPrimary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 4,
+                                children: [
+                                  Text(
+                                    'Endereço',
+                                    style: TextStyle(
+                                      color: context.colors.textPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Rua das Flores, 123 - Centro, São Paulo - SP, 01000-000',
+                                    style: TextStyle(
+                                      color: context.colors.textSecondary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.textSecondary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'A 2.5 km (Aprox. 10 min)',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-                const Text(
-                  'R\$ 150,00',
-                  style: TextStyle(
-                    color: Colors.greenAccent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton(
                     onPressed: acceptOrRejectRequest,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Ver Detalhes',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
+                    child: const Text('Aceitar'),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _ShimmerEffect extends StatefulWidget {
+  final Widget child;
+  const _ShimmerEffect({required this.child});
+
+  @override
+  State<_ShimmerEffect> createState() => _ShimmerEffectState();
+}
+
+class _ShimmerEffectState extends State<_ShimmerEffect>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final baseColor = isDark ? Colors.white10 : Colors.black12;
+            final highlightColor = isDark ? Colors.white38 : Colors.black26;
+
+            return LinearGradient(
+              colors: [baseColor, highlightColor, baseColor],
+              stops: const [0.0, 0.5, 1.0],
+              begin: Alignment(_animation.value - 1, 0),
+              end: Alignment(_animation.value + 1, 0),
+            ).createShader(bounds);
+          },
+          child: widget.child,
+        );
+      },
     );
   }
 }

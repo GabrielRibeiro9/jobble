@@ -2,64 +2,173 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract class AppTheme {
-  static ThemeData get theme {
+  static ThemeData get light {
+    final colors = AppColorsTheme.light;
     return ThemeData(
       fontFamily: 'Inter',
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme(
-        brightness: Brightness.dark,
-        surface: AppColors.background,
-        onSurface: AppColors.textPrimary,
-        primary: AppColors.primary,
-        onPrimary: AppColors.background,
-        secondary: AppColors.textSecondary,
-        onSecondary: AppColors.textPrimary,
-        error: Colors.redAccent,
-        onError: AppColors.textPrimary,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: colors.background,
+      extensions: <ThemeExtension<dynamic>>[colors],
+      colorScheme: ColorScheme.light(
+        surface: colors.background,
+        onSurface: colors.textPrimary,
+        primary: colors.primary,
+        onPrimary: colors.onPrimary,
+        secondary: colors.textSecondary,
+        onSecondary: colors.textPrimary,
+        error: colors.error,
+        onError: colors.onPrimary,
+      ),
+      dividerTheme: DividerThemeData(
+        color: colors.surfaceLight,
+        thickness: 1,
+        space: 1,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color.fromARGB(255, 32, 32, 32),
+        fillColor: colors.surfaceLight,
         isDense: true,
-        constraints: const BoxConstraints(minHeight: 42, maxHeight: 42),
-        hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
+        hintStyle: TextStyle(
+          color: colors.textHint,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.transparent, width: 1),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.borderLight,
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.error, width: 2),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.background,
-          minimumSize: const Size(double.infinity, 42),
+          backgroundColor: colors.primary,
+          foregroundColor: colors.onPrimary,
+          minimumSize: const Size(double.infinity, 56),
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
-          minimumSize: const Size(double.infinity, 42),
-          side: const BorderSide(color: AppColors.border),
+          foregroundColor: colors.textPrimary,
+          minimumSize: const Size(double.infinity, 56),
+          elevation: 0,
+          side: BorderSide(color: colors.border, width: 1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get dark {
+    final colors = AppColorsTheme.dark;
+    return ThemeData(
+      fontFamily: 'Inter',
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: colors.background,
+      extensions: <ThemeExtension<dynamic>>[colors],
+      colorScheme: ColorScheme.dark(
+        surface: colors.background,
+        onSurface: colors.textPrimary,
+        primary: colors.primary,
+        onPrimary: colors.onPrimary,
+        secondary: colors.textSecondary,
+        onSecondary: colors.textPrimary,
+        error: colors.error,
+        onError: colors.onPrimary,
+      ),
+      dividerTheme: DividerThemeData(
+        color: colors.surfaceLight,
+        thickness: 1,
+        space: 1,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colors.surfaceLight,
+        isDense: true,
+        hintStyle: TextStyle(
+          color: colors.textHint,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.error, width: 2),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colors.primary,
+          foregroundColor: colors.onPrimary,
+          minimumSize: const Size(double.infinity, 56),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.textPrimary,
+          minimumSize: const Size(double.infinity, 56),
+          elevation: 0,
+          side: BorderSide(color: colors.border, width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

@@ -3,15 +3,21 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final SignupUseCase signupUseCase;
+  final VerifyEmailUseCase verifyEmailUseCase;
 
-  AuthBloc({required this.loginUseCase, required this.signupUseCase})
-    : super(AuthInitial()) {
+  AuthBloc({
+    required this.loginUseCase,
+    required this.signupUseCase,
+    required this.verifyEmailUseCase,
+  }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignupSubmitted>(_onSignupSubmitted);
+    on<EmailVerificationSubmitted>(_onEmailVerificationSubmitted);
   }
 
   Future<void> _onLoginSubmitted(
@@ -34,12 +40,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await signupUseCase.execute(
+      await signupUseCase.execute(
         event.name,
         event.email,
         event.password,
+        cpf: event.cpf,
       );
-      emit(AuthSuccess(accessToken: result.accessToken));
+      emit(AuthSignupStep1Success());
+    } catch (e) {
+      final message = e.toString().replaceAll('Exception: ', '');
+      emit(AuthFailure(message: message));
+    }
+  }
+
+  Future<void> _onEmailVerificationSubmitted(
+    EmailVerificationSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await verifyEmailUseCase.execute(event.email, event.code);
+      emit(AuthVerificationSuccess());
     } catch (e) {
       final message = e.toString().replaceAll('Exception: ', '');
       emit(AuthFailure(message: message));

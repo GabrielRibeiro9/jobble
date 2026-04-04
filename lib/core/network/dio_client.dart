@@ -4,7 +4,8 @@ class DioClient {
   late final Dio _dio;
 
   DioClient() {
-    const String baseUrl = 'https://base-prod.up.railway.app';
+    // const String baseUrl = 'https://jobble-api.up.railway.app';
+    const String baseUrl = '10.0.2.2:3333';
 
     _dio = Dio(
       BaseOptions(

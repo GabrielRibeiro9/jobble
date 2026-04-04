@@ -61,10 +61,10 @@ class _SignupFormState extends State<SignupForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── E-mail field ──
-            const Text(
+            Text(
               'Email',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -73,22 +73,17 @@ class _SignupFormState extends State<SignupForm> {
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
-              decoration: const InputDecoration(
-                hintText: 'email@basebrasil.com.br',
-              ),
+              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
+              decoration: InputDecoration(hintText: 'email@basebrasil.com.br'),
             ),
 
             const SizedBox(height: 20),
 
             // ── Senha field ──
-            const Text(
+            Text(
               'Senha',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -97,17 +92,14 @@ class _SignupFormState extends State<SignupForm> {
             TextField(
               controller: _passwordController,
               obscureText: _obscurePassword,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -119,18 +111,21 @@ class _SignupFormState extends State<SignupForm> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Deve ter no mínimo 8 caracteres.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 13,
+              ),
             ),
 
             const SizedBox(height: 20),
 
             // ── Confirmar Senha field ──
-            const Text(
+            Text(
               'Confirme sua Senha',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -139,10 +134,7 @@ class _SignupFormState extends State<SignupForm> {
             TextField(
               controller: _confirmPasswordController,
               obscureText: _obscureConfirmPassword,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
                   padding: EdgeInsets.zero,
@@ -151,7 +143,7 @@ class _SignupFormState extends State<SignupForm> {
                     _obscureConfirmPassword
                         ? Icons.visibility
                         : Icons.visibility_off,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -182,18 +174,18 @@ class _SignupFormState extends State<SignupForm> {
                       );
                     },
               child: state is AuthLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.background,
+                        color: context.colors.background,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       'Crie sua Conta',
                       style: TextStyle(
-                        color: AppColors.background,
+                        color: context.colors.background,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
