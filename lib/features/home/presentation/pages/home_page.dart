@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -155,6 +156,7 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.background,
+      drawer: const HomeDrawer(),
       body: Stack(
         children: [
           // 1. Real OpenStreetMap
@@ -178,7 +180,12 @@ class _HomePageState extends State<HomePage>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildIconButton(Icons.menu),
+                  Builder(
+                    builder: (context) => _buildIconButton(
+                      Icons.menu,
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  ),
                   _buildEarningsBadge(),
                   _buildIconButton(
                     LucideIcons.settings,
