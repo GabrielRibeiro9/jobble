@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/offline_dashboard.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -162,12 +163,10 @@ class _HomePageState extends State<HomePage>
           // 1. Real OpenStreetMap
           _buildMap(),
 
-          // 2. Adaptive Overlay if offline
+          // 2. Offline Dashboard
           if (!isOnline)
-            Container(
-              color: context.colors.background.withOpacity(
-                Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.4,
-              ),
+            const Positioned.fill(
+              child: OfflineDashboard(),
             ),
 
           // 3. Top Action Bar
@@ -186,7 +185,7 @@ class _HomePageState extends State<HomePage>
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
-                  _buildEarningsBadge(),
+                  if (isOnline) _buildEarningsBadge(),
                   _buildIconButton(
                     LucideIcons.settings,
                     onPressed: () {
@@ -597,13 +596,14 @@ class _HomePageState extends State<HomePage>
         mainAxisSize: MainAxisSize.min,
         spacing: 16,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildFloatingButton(Icons.help_outline, onPressed: () {}),
-              _buildFloatingButton(Icons.my_location, onPressed: _centerMap),
-            ],
-          ),
+          if (isOnline)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildFloatingButton(Icons.help_outline, onPressed: () {}),
+                _buildFloatingButton(Icons.my_location, onPressed: _centerMap),
+              ],
+            ),
           _buildMainToggleButton(),
         ],
       ),
