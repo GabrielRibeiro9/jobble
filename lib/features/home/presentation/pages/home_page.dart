@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,19 +18,64 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with TickerProviderStateMixin {
   bool isOnline = false;
   bool showRequest = false;
+  bool showSummary = false;
 
   // Map
   final MapController _mapController = MapController();
   LatLng? _currentPosition;
   bool _isLoadingLocation = true;
 
+  // Summary animation
+  late final AnimationController _summaryAnimController;
+  late final Animation<double> _summaryExpandAnim;
+  late final Animation<double> _summaryFadeAnim;
+
+  // Mock data — Atendimentos Recentes
+  static const List<Map<String, String>> _recentServices = [
+    {'service': 'Instalação Elétrica', 'time': '09:30', 'value': 'R\$ 85,00', 'icon': 'bolt'},
+    {'service': 'Reparo Hidráulico', 'time': '11:15', 'value': 'R\$ 65,00', 'icon': 'wrench'},
+    {'service': 'Pintura Residencial', 'time': '14:00', 'value': 'R\$ 100,00', 'icon': 'paint'},
+  ];
+
   @override
   void initState() {
     super.initState();
     _initLocation();
+    _summaryAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _summaryExpandAnim = CurvedAnimation(
+      parent: _summaryAnimController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    _summaryFadeAnim = CurvedAnimation(
+      parent: _summaryAnimController,
+      curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
+      reverseCurve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _summaryAnimController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSummary() {
+    setState(() {
+      showSummary = !showSummary;
+      if (showSummary) {
+        _summaryAnimController.forward();
+      } else {
+        _summaryAnimController.reverse();
+      }
+    });
   }
 
   Future<void> _initLocation() async {
@@ -146,6 +192,14 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+          ),
+
+          // 3.5 Animated Summary Panel
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 64,
+            left: 0,
+            right: 0,
+            child: _buildSummaryPanel(),
           ),
 
           // 4. Bottom Controls
@@ -319,22 +373,211 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildEarningsBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: context.colors.border,
-          width: 1,
+    return GestureDetector(
+      onTap: _toggleSummary,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: showSummary
+                ? context.colors.themePrimary.withOpacity(0.5)
+                : context.colors.border,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              LucideIcons.wallet,
+              color: context.colors.themePrimary,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'R\$ 250,00',
+              style: TextStyle(
+                color: context.colors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 6),
+            AnimatedRotation(
+              turns: showSummary ? 0.5 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                LucideIcons.chevron_down,
+                color: context.colors.textSecondary,
+                size: 14,
+              ),
+            ),
+          ],
         ),
       ),
-      child: Text(
-        'R\$ 150,00',
-        style: TextStyle(
-          color: context.colors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget _buildSummaryPanel() {
+    final colors = context.colors;
+    return SizeTransition(
+      sizeFactor: _summaryExpandAnim,
+      axisAlignment: -1.0,
+      child: FadeTransition(
+        opacity: _summaryFadeAnim,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.border, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.textPrimary.withOpacity(0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.clock, color: colors.themePrimary, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Atendimentos Recentes',
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colors.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_recentServices.length} serviços',
+                          style: TextStyle(
+                            color: colors.success,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, color: colors.border.withOpacity(0.5)),
+                ListView.separated(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _recentServices.length,
+                  separatorBuilder: (_, _2) => Divider(
+                    height: 1,
+                    indent: 72,
+                    color: colors.border.withOpacity(0.3),
+                  ),
+                  itemBuilder: (context, index) {
+                    final item = _recentServices[index];
+                    return _buildServiceCard(colors, item, index);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServiceCard(AppColorsTheme colors, Map<String, String> item, int index) {
+    final iconMap = {
+      'bolt': LucideIcons.zap,
+      'wrench': LucideIcons.wrench,
+      'paint': LucideIcons.paintbrush,
+    };
+    final colorPalette = [colors.warning, colors.themePrimary, colors.success];
+    final iconData = iconMap[item['icon']] ?? LucideIcons.briefcase;
+    final iconColor = colorPalette[index % colorPalette.length];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colors.surfaceLight.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(iconData, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['service'] ?? '',
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(LucideIcons.clock, size: 12, color: colors.textHint),
+                      const SizedBox(width: 4),
+                      Text(
+                        item['time'] ?? '',
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: colors.success.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                item['value'] ?? '',
+                style: TextStyle(
+                  color: colors.success,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
