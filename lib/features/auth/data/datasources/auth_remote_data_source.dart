@@ -8,6 +8,7 @@ abstract class AuthRemoteDataSource {
   Future<LoginResponse> login(LoginRequest request);
   Future<void> signup(SignupRequest request);
   Future<void> verifyEmail(String email, String code);
+  Future<void> completeOnboarding(String name, String cpf);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -60,6 +61,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await dioClient.dio.post(
         '/auth/verify',
         data: {'email': email, 'code': code},
+      );
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final message = e.response?.data['message'];
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> completeOnboarding(String name, String cpf) async {
+    try {
+      await dioClient.dio.post(
+        '/auth/complete-onboarding',
+        data: {'name': name, 'cpf': cpf},
       );
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {

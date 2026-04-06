@@ -8,7 +8,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_email.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_otp.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_profile.dart';
-import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
@@ -116,11 +116,31 @@ class _SignupPageState extends State<SignupPage> {
             state.accessToken,
           );
 
-          Navigator.of(context).pushReplacement(
+          if (!completed && _currentStep == 2) {
+            // Automatically complete onboarding if we are at the profile step
+            context.read<AuthBloc>().add(
+                  CompleteOnboardingSubmitted(
+                    name: _nameController.text,
+                    cpf: _cpfController.text,
+                  ),
+                );
+            return;
+          }
+
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) =>
-                  completed ? const HomePage() : const OnboardingPage(),
+                  completed ? const HomePage() : const CompleteProfilePage(),
             ),
+            (route) => false,
+          );
+        } else if (state is AuthOnboardingSuccess) {
+          // This state is also used for onboarding completion success
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+            (route) => false,
           );
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(

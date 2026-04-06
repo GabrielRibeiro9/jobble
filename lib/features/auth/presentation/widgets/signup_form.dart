@@ -4,7 +4,7 @@ import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
@@ -35,9 +35,6 @@ class _SignupFormState extends State<SignupForm> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthFailure) {
-          // SnackBar removed
-        }
         if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
           tokenService.saveToken(state.accessToken);
@@ -48,148 +45,227 @@ class _SignupFormState extends State<SignupForm> {
 
           if (!mounted) return;
 
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) =>
-                  completed ? const HomePage() : const OnboardingPage(),
+                  completed ? const HomePage() : const CompleteProfilePage(),
             ),
+            (route) => false,
           );
         }
       },
       builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── E-mail field ──
-            Text(
-              'Email',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(hintText: 'email@basebrasil.com.br'),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Senha field ──
-            Text(
-              'Senha',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                suffixIcon: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: context.colors.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Deve ter no mínimo 8 caracteres.',
-              style: TextStyle(
-                color: context.colors.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Confirmar Senha field ──
-            Text(
-              'Confirme sua Senha',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: _obscureConfirmPassword,
-              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                suffixIcon: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colors.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureConfirmPassword = !_obscureConfirmPassword;
-                    });
-                  },
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            ElevatedButton(
-              onPressed: state is AuthLoading
-                  ? null
-                  : () {
-                      if (_passwordController.text !=
-                          _confirmPasswordController.text) {
-                        // SnackBar removed
-                        return;
-                      }
-                      context.read<AuthBloc>().add(
-                        SignupSubmitted(
-                          email: _emailController.text,
-                          password: _passwordController.text,
-                        ),
-                      );
-                    },
-              child: state is AuthLoading
-                  ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: context.colors.background,
-                      ),
-                    )
-                  : Text(
-                      'Crie sua Conta',
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── E-mail field ──
+                    Text(
+                      'E-mail',
                       style: TextStyle(
-                        color: context.colors.background,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        color: context.colors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: context.colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'exemplo@email.com',
+                        filled: true,
+                        fillColor: context.colors.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Senha field ──
+                    Text(
+                      'Senha',
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: TextStyle(color: context.colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Sua senha',
+                        filled: true,
+                        fillColor: context.colors.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: context.colors.textSecondary,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Deve ter no mínimo 8 caracteres.',
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Confirmar Senha field ──
+                    Text(
+                      'Confirme sua Senha',
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      style: TextStyle(color: context.colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Confirme sua senha',
+                        filled: true,
+                        fillColor: context.colors.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colors.borderLight,
+                          ),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: context.colors.textSecondary,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        if (_passwordController.text !=
+                            _confirmPasswordController.text) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('As senhas não coincidem'),
+                              backgroundColor: context.colors.error,
+                            ),
+                          );
+                          return;
+                        }
+                        context.read<AuthBloc>().add(
+                          SignupSubmitted(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          ),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Criar Conta',
+                        style: TextStyle(
+                          color: context.colors.onPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
             ),
           ],
         );

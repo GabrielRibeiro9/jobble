@@ -32,3 +32,5 @@ class AuthFailure extends AuthState {
 class AuthSignupStep1Success extends AuthState {}
 
 class AuthVerificationSuccess extends AuthState {}
+
+class AuthOnboardingSuccess extends AuthState {}

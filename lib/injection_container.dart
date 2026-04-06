@@ -6,6 +6,7 @@ import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.da
 import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
@@ -22,6 +23,7 @@ Future<void> init() async {
       loginUseCase: sl(),
       signupUseCase: sl(),
       verifyEmailUseCase: sl(),
+      completeOnboardingUseCase: sl(),
     ),
   );
 
@@ -29,6 +31,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => LoginUseCase(repository: sl()));
   sl.registerLazySingleton(() => SignupUseCase(repository: sl()));
   sl.registerLazySingleton(() => VerifyEmailUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CompleteOnboardingUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

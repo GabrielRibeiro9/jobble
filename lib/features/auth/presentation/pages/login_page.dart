@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:flutter_tcc/core/constants/app_assets.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/auth_error_card.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/login_form.dart';
-import 'package:flutter_tcc/features/auth/presentation/pages/signup_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -16,6 +13,29 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.colors.background,
+      appBar: AppBar(
+        backgroundColor: context.colors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: context.colors.textPrimary,
+            size: 20,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        centerTitle: true,
+        title: Text(
+          'ENTRAR',
+          style: TextStyle(
+            color: context.colors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -24,199 +44,40 @@ class LoginPage extends StatelessWidget {
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 32),
-
-                        Image.asset(AppAssets.logo, height: 24),
-
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 340),
-                              child: BlocBuilder<AuthBloc, AuthState>(
-                                builder: (context, state) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (state is AuthFailure) ...[
-                                        AuthErrorCard(message: state.message),
-                                        const SizedBox(height: 32),
-                                      ],
-                                      Text(
-                                        'Acesse sua conta',
-                                        style: TextStyle(
-                                          color: context.colors.textPrimary,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Entre para acompanhar seu trabalho',
-                                        style: TextStyle(
-                                          color: context.colors.textSecondary,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-
-                                      const SizedBox(height: 32),
-
-                                      // ── Google button ──
-                                      OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor:
-                                              context.colors.textPrimary,
-                                          textStyle: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          // TODO: Google sign-in
-                                        },
-                                        icon: SvgPicture.asset(
-                                          AppAssets.googleIcon,
-                                          height: 18,
-                                          width: 18,
-                                        ),
-                                        label: Text(
-                                          'Entrar com Google',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            color: context.colors.textPrimary,
-                                          ),
-                                        ),
-                                      ),
-
-                                      SizedBox(height: 24),
-
-                                      // ── Divider ──
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Divider(
-                                              color: context.colors.borderLight,
-                                              thickness: 1.0,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                            ),
-                                            child: Text(
-                                              'Ou continue com',
-                                              style: TextStyle(
-                                                color: context.colors.textPrimary,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Divider(
-                                              color: context.colors.borderLight,
-                                              thickness: 1.0,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 24),
-
-                                      // ── Login form ──
-                                      const LoginForm(),
-
-                                      const SizedBox(height: 24),
-
-                                      // ── Register link ──
-                                      Center(
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Não tem uma conta? ',
-                                              style: TextStyle(
-                                                color: context.colors.textSecondary,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const SignupPage(),
-                                                  ),
-                                                );
-                                              },
-                                              child: Text(
-                                                'Cadastre-se',
-                                                style: TextStyle(
-                                                  color: context.colors.textPrimary,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  decoration:
-                                                      TextDecoration.underline,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (state is AuthFailure) ...[
+                              AuthErrorCard(message: state.message),
+                              const SizedBox(height: 32),
+                            ],
+                            Text(
+                              'Acesse sua conta',
+                              style: TextStyle(
+                                color: context.colors.textPrimary,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
-                        ),
-
-                        const Spacer(), // ── Centraliza o conteúdo ──
-                        // ── Footer ──
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 32),
-                          child: Center(
-                            child: Text.rich(
-                              TextSpan(
-                                style: TextStyle(
-                                  color: context.colors.textSecondary,
-                                  fontSize: 12,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        'Ao continuar, você concorda com nossos\n',
-                                  ),
-                                  TextSpan(
-                                    text: 'Termos de Serviço',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: context.colors.textSecondary,
-                                    ),
-                                  ),
-                                  TextSpan(text: ' e a '),
-                                  TextSpan(
-                                    text: 'Política de Privacidade',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: context.colors.textSecondary,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 12),
+                            Text(
+                              'Entre para acompanhar seu trabalho e gerenciar seu negócio',
+                              style: TextStyle(
+                                color: context.colors.textSecondary,
+                                fontSize: 14,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          ),
-                        ),
-                      ],
+                            const SizedBox(height: 32),
+                            const Expanded(child: LoginForm()),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

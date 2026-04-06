@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_tcc/features/onboard/presentation/pages/onboarding_page.dart';
+import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
+import 'package:flutter_tcc/features/auth/presentation/pages/signup_page.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -33,9 +34,6 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthFailure) {
-          // SnackBar removed
-        }
         if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
           tokenService.saveToken(state.accessToken);
@@ -46,121 +44,192 @@ class _LoginFormState extends State<LoginForm> {
 
           if (!mounted) return;
 
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) =>
-                  completed ? const HomePage() : const OnboardingPage(),
+                  completed ? const HomePage() : const CompleteProfilePage(),
             ),
+            (route) => false,
           );
         }
       },
       builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── E-mail field ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'E-mail',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(hintText: 'email@basebrasil.com.br'),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Senha field ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Senha',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    // TODO: navigate to forgot-password
-                  },
-                  child: Text(
-                    'Esqueceu sua senha?',
-                    style: TextStyle(
-                      color: context.colors.textSecondary,
-                      fontSize: 13,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'E-mail',
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                suffixIcon: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: context.colors.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: context.colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'exemplo@email.com',
+                        filled: true,
+                        fillColor: context.colors.surface,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.colors.borderLight),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.colors.borderLight),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Senha',
+                          style: TextStyle(
+                            color: context.colors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: navigate to forgot-password
+                          },
+                          child: Text(
+                            'Esqueceu sua senha?',
+                            style: TextStyle(
+                              color: context.colors.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: TextStyle(color: context.colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Sua senha',
+                        filled: true,
+                        fillColor: context.colors.surface,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.colors.borderLight),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.colors.borderLight),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: context.colors.textSecondary,
+                          ),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 28),
-
-            ElevatedButton(
-              onPressed: state is AuthLoading
-                  ? null
-                  : () {
-                      context.read<AuthBloc>().add(
-                        LoginSubmitted(
-                          email: _emailController.text,
-                          password: _passwordController.text,
+            
+            const SizedBox(height: 24),
+            
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Não tem uma conta? ',
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignupPage(),
                         ),
                       );
                     },
-              child: state is AuthLoading
-                  ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: context.colors.background,
-                      ),
-                    )
-                  : Text(
-                      'Entrar',
+                    child: Text(
+                      'Cadastre-se',
                       style: TextStyle(
-                        color: context.colors.background,
-                        fontSize: 13,
+                        color: context.colors.primary,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        context.read<AuthBloc>().add(
+                          LoginSubmitted(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          ),
+                        );
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Entrar',
+                        style: TextStyle(
+                          color: context.colors.onPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
             ),
           ],
         );

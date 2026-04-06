@@ -32,4 +32,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> verifyEmail(String email, String code) async {
     await remoteDataSource.verifyEmail(email, code);
   }
+
+  @override
+  Future<void> completeOnboarding(String name, String cpf) async {
+    await remoteDataSource.completeOnboarding(name, cpf);
+  }
 }
