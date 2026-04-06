@@ -53,3 +53,11 @@ class CompleteOnboardingSubmitted extends AuthEvent {
   @override
   List<Object?> get props => [name, cpf];
 }
+class ResendVerificationEmailRequested extends AuthEvent {
+  final String email;
+
+  const ResendVerificationEmailRequested({required this.email});
+
+  @override
+  List<Object> get props => [email];
+}

@@ -7,6 +7,7 @@ import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
@@ -24,6 +25,8 @@ Future<void> init() async {
       signupUseCase: sl(),
       verifyEmailUseCase: sl(),
       completeOnboardingUseCase: sl(),
+      resendVerificationCodeUseCase: sl(),
+      tokenService: sl(),
     ),
   );
 
@@ -32,6 +35,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SignupUseCase(repository: sl()));
   sl.registerLazySingleton(() => VerifyEmailUseCase(repository: sl()));
   sl.registerLazySingleton(() => CompleteOnboardingUseCase(repository: sl()));
+  sl.registerLazySingleton(() => ResendVerificationCodeUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -44,7 +48,7 @@ Future<void> init() async {
   );
 
   // Core
-  sl.registerLazySingleton(() => DioClient());
+  sl.registerLazySingleton(() => DioClient(tokenService: sl()));
   sl.registerLazySingleton(() => TokenService());
   sl.registerLazySingleton(() => ThemeCubit());
 }

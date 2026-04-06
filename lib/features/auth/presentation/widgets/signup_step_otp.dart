@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 
 class SignupStepOtp extends StatefulWidget {
   final String email;
@@ -64,15 +67,14 @@ class _SignupStepOtpState extends State<SignupStepOtp> {
         Text.rich(
           TextSpan(
             text: 'Enviamos um código de 6 dígitos para o seu e-mail ',
-            style: TextStyle(
-              color: context.colors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
             children: [
               TextSpan(
                 text: widget.email,
                 style: TextStyle(
-                    fontWeight: FontWeight.w600, color: context.colors.textPrimary),
+                  fontWeight: FontWeight.w600,
+                  color: context.colors.textPrimary,
+                ),
               ),
             ],
           ),
@@ -116,7 +118,15 @@ class _SignupStepOtpState extends State<SignupStepOtp> {
         const SizedBox(height: 24),
         GestureDetector(
           onTap: () {
-            // TODO: Resend OTP
+            context.read<AuthBloc>().add(
+              ResendVerificationEmailRequested(email: widget.email),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Código reenviado com sucesso!'),
+                duration: Duration(seconds: 2),
+              ),
+            );
           },
           child: Text(
             'Reenviar código',

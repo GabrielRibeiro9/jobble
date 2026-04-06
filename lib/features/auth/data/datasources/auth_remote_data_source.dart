@@ -8,6 +8,7 @@ abstract class AuthRemoteDataSource {
   Future<LoginResponse> login(LoginRequest request);
   Future<void> signup(SignupRequest request);
   Future<void> verifyEmail(String email, String code);
+  Future<void> resendVerificationCode(String email);
   Future<void> completeOnboarding(String name, String cpf);
 }
 
@@ -61,6 +62,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await dioClient.dio.post(
         '/auth/verify',
         data: {'email': email, 'code': code},
+      );
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final message = e.response?.data['message'];
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> resendVerificationCode(String email) async {
+    try {
+      await dioClient.dio.post(
+        '/auth/resend-verification',
+        data: {'email': email},
       );
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {

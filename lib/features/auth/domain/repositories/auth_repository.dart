@@ -9,5 +9,6 @@ abstract class AuthRepository {
     String? cpf,
   });
   Future<void> verifyEmail(String email, String code);
+  Future<void> resendVerificationCode(String email);
   Future<void> completeOnboarding(String name, String cpf);
 }

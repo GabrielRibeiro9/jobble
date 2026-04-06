@@ -6,6 +6,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
+import 'package:flutter_tcc/features/auth/presentation/pages/verify_otp_page.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
@@ -36,19 +37,26 @@ class _LoginFormState extends State<LoginForm> {
       listener: (context, state) {
         if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
-          tokenService.saveToken(state.accessToken);
-
-          final completed = tokenService.isOnboardingCompleted(
-            state.accessToken,
-          );
+          final verified = tokenService.isVerified(state.accessToken);
+          final completed = tokenService.isOnboardingCompleted(state.accessToken);
+          final email = tokenService.getUserEmail(state.accessToken);
 
           if (!mounted) return;
 
+          Widget nextStep;
+          if (!verified) {
+            nextStep = VerifyOtpPage(
+              email: email ?? _emailController.text,
+              source: VerifyOtpSource.login,
+            );
+          } else if (!completed) {
+            nextStep = const CompleteProfilePage();
+          } else {
+            nextStep = const HomePage();
+          }
+
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) =>
-                  completed ? const HomePage() : const CompleteProfilePage(),
-            ),
+            MaterialPageRoute(builder: (context) => nextStep),
             (route) => false,
           );
         }

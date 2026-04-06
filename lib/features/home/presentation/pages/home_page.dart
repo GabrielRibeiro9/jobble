@@ -12,7 +12,6 @@ import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.d
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/offline_dashboard.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -20,8 +19,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with TickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool isOnline = false;
   bool showRequest = false;
   bool showSummary = false;
@@ -38,9 +36,24 @@ class _HomePageState extends State<HomePage>
 
   // Mock data — Atendimentos Recentes
   static const List<Map<String, String>> _recentServices = [
-    {'service': 'Instalação Elétrica', 'time': '09:30', 'value': 'R\$ 85,00', 'icon': 'bolt'},
-    {'service': 'Reparo Hidráulico', 'time': '11:15', 'value': 'R\$ 65,00', 'icon': 'wrench'},
-    {'service': 'Pintura Residencial', 'time': '14:00', 'value': 'R\$ 100,00', 'icon': 'paint'},
+    {
+      'service': 'Instalação Elétrica',
+      'time': '09:30',
+      'value': 'R\$ 85,00',
+      'icon': 'bolt',
+    },
+    {
+      'service': 'Reparo Hidráulico',
+      'time': '11:15',
+      'value': 'R\$ 65,00',
+      'icon': 'wrench',
+    },
+    {
+      'service': 'Pintura Residencial',
+      'time': '14:00',
+      'value': 'R\$ 100,00',
+      'icon': 'paint',
+    },
   ];
 
   @override
@@ -164,10 +177,7 @@ class _HomePageState extends State<HomePage>
           _buildMap(),
 
           // 2. Offline Dashboard
-          if (!isOnline)
-            const Positioned.fill(
-              child: OfflineDashboard(),
-            ),
+          if (!isOnline) const Positioned.fill(child: OfflineDashboard()),
 
           // 3. Top Action Bar
           SafeArea(
@@ -360,10 +370,7 @@ class _HomePageState extends State<HomePage>
       decoration: BoxDecoration(
         color: context.colors.surface,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: context.colors.border,
-          width: 1,
-        ),
+        border: Border.all(color: context.colors.border, width: 1),
       ),
       child: IconButton(
         icon: Icon(icon, color: context.colors.textPrimary),
@@ -456,7 +463,11 @@ class _HomePageState extends State<HomePage>
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                   child: Row(
                     children: [
-                      Icon(LucideIcons.clock, color: colors.themePrimary, size: 16),
+                      Icon(
+                        LucideIcons.clock,
+                        color: colors.themePrimary,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Atendimentos Recentes',
@@ -468,7 +479,10 @@ class _HomePageState extends State<HomePage>
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.success.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -509,7 +523,11 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildServiceCard(AppColorsTheme colors, Map<String, String> item, int index) {
+  Widget _buildServiceCard(
+    AppColorsTheme colors,
+    Map<String, String> item,
+    int index,
+  ) {
     final iconMap = {
       'bolt': LucideIcons.zap,
       'wrench': LucideIcons.wrench,
@@ -647,9 +665,7 @@ class _HomePageState extends State<HomePage>
               : context.colors.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isOnline
-                ? Colors.transparent
-                : context.colors.border,
+            color: isOnline ? Colors.transparent : context.colors.border,
             width: 1,
           ),
         ),
@@ -669,8 +685,7 @@ class _HomePageState extends State<HomePage>
                     style: TextStyle(
                       color: context.colors.onPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -690,8 +705,7 @@ class _HomePageState extends State<HomePage>
                     style: TextStyle(
                       color: context.colors.textSecondary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -714,17 +728,11 @@ class _HomePageState extends State<HomePage>
             decoration: BoxDecoration(
               color: context.colors.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: context.colors.border,
-                width: 1,
-              ),
+              border: Border.all(color: context.colors.border, width: 1),
             ),
             child: Row(
               children: [
-                const ProfileAvatar(
-                  size: 48,
-                  fallbackName: 'José da Silva',
-                ),
+                const ProfileAvatar(size: 48, fallbackName: 'José da Silva'),
                 const SizedBox(width: 12),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -749,10 +757,7 @@ class _HomePageState extends State<HomePage>
             decoration: BoxDecoration(
               color: context.colors.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: context.colors.border,
-                width: 1,
-              ),
+              border: Border.all(color: context.colors.border, width: 1),
             ),
             padding: const EdgeInsets.all(12),
             child: Column(

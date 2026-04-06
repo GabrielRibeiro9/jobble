@@ -12,6 +12,7 @@ import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_pa
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
+import 'package:flutter_tcc/features/auth/presentation/pages/verify_otp_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -54,20 +55,17 @@ class _SignupPageState extends State<SignupPage> {
     }
 
     context.read<AuthBloc>().add(
-          SignupSubmitted(
-            email: _emailController.text,
-            password: _passwordController.text,
-          ),
-        );
+      SignupSubmitted(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   void _onStep2Continue(String code) {
     context.read<AuthBloc>().add(
-          EmailVerificationSubmitted(
-            email: _emailController.text,
-            code: code,
-          ),
-        );
+      EmailVerificationSubmitted(email: _emailController.text, code: code),
+    );
   }
 
   void _nextPage() {
@@ -91,13 +89,12 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _onFinish() {
-    // After verification, we sign in to get the token and complete the flow
     context.read<AuthBloc>().add(
-          LoginSubmitted(
-            email: _emailController.text,
-            password: _passwordController.text,
-          ),
-        );
+      LoginSubmitted(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
@@ -106,40 +103,52 @@ class _SignupPageState extends State<SignupPage> {
       listener: (context, state) {
         if (state is AuthSignupStep1Success) {
           _nextPage();
+          // Trigger OTP resend automatically when reaching Step 2
+          context.read<AuthBloc>().add(
+            ResendVerificationEmailRequested(email: _emailController.text),
+          );
         } else if (state is AuthVerificationSuccess) {
           _nextPage();
         } else if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
-          tokenService.saveToken(state.accessToken);
 
+          final verified = tokenService.isVerified(state.accessToken);
           final completed = tokenService.isOnboardingCompleted(
             state.accessToken,
           );
+          final email = tokenService.getUserEmail(state.accessToken);
 
           if (!completed && _currentStep == 2) {
-            // Automatically complete onboarding if we are at the profile step
             context.read<AuthBloc>().add(
-                  CompleteOnboardingSubmitted(
-                    name: _nameController.text,
-                    cpf: _cpfController.text,
-                  ),
-                );
+              CompleteOnboardingSubmitted(
+                name: _nameController.text,
+                cpf: _cpfController.text,
+              ),
+            );
             return;
           }
 
+          if (!mounted) return;
+
+          Widget nextStep;
+          if (!verified) {
+            nextStep = VerifyOtpPage(
+              email: email ?? _emailController.text,
+              source: VerifyOtpSource.signup,
+            );
+          } else if (!completed) {
+            nextStep = const CompleteProfilePage();
+          } else {
+            nextStep = const HomePage();
+          }
+
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) =>
-                  completed ? const HomePage() : const CompleteProfilePage(),
-            ),
+            MaterialPageRoute(builder: (context) => nextStep),
             (route) => false,
           );
         } else if (state is AuthOnboardingSuccess) {
-          // This state is also used for onboarding completion success
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
+            MaterialPageRoute(builder: (context) => const HomePage()),
             (route) => false,
           );
         } else if (state is AuthFailure) {

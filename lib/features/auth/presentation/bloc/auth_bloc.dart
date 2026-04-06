@@ -5,23 +5,42 @@ import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
+
+import 'package:flutter_tcc/core/services/token_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final SignupUseCase signupUseCase;
   final VerifyEmailUseCase verifyEmailUseCase;
   final CompleteOnboardingUseCase completeOnboardingUseCase;
+  final ResendVerificationCodeUseCase resendVerificationCodeUseCase;
+  final TokenService tokenService;
 
   AuthBloc({
     required this.loginUseCase,
     required this.signupUseCase,
     required this.verifyEmailUseCase,
     required this.completeOnboardingUseCase,
+    required this.resendVerificationCodeUseCase,
+    required this.tokenService,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignupSubmitted>(_onSignupSubmitted);
     on<EmailVerificationSubmitted>(_onEmailVerificationSubmitted);
     on<CompleteOnboardingSubmitted>(_onCompleteOnboardingSubmitted);
+    on<ResendVerificationEmailRequested>(_onResendVerificationEmailRequested);
+  }
+
+  Future<void> _onResendVerificationEmailRequested(
+    ResendVerificationEmailRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      await resendVerificationCodeUseCase.execute(event.email);
+    } catch (e) {
+      // Fail silently for automatic triggers
+    }
   }
 
   Future<void> _onLoginSubmitted(
@@ -31,6 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final result = await loginUseCase.execute(event.email, event.password);
+      await tokenService.saveToken(result.accessToken);
       emit(AuthSuccess(accessToken: result.accessToken));
     } catch (e) {
       final message = e.toString().replaceAll('Exception: ', '');

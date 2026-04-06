@@ -30,6 +30,32 @@ class TokenService {
     }
   }
 
+  bool isVerified(String token) {
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      final data = decodedToken['data'] as Map<String, dynamic>?;
+      if (data != null) {
+        return data['is_verified'] == true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  String? getUserEmail(String token) {
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      final data = decodedToken['data'] as Map<String, dynamic>?;
+      if (data != null) {
+        return data['email'] as String?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   bool isTokenExpired(String token) {
     return JwtDecoder.isExpired(token);
   }
