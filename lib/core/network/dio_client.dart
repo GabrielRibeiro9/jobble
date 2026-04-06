@@ -5,7 +5,7 @@ class DioClient {
 
   DioClient() {
     const String baseUrl = 'https://jobble-api.up.railway.app';
-    // const String baseUrl = 'http://10.0.2.2:3333';
+    // const String baseUrl = 'http://[IP_ADDRESS]';
 
     _dio = Dio(
       BaseOptions(
