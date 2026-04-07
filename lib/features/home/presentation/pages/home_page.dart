@@ -12,6 +12,7 @@ import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.d
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/offline_dashboard.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/service_summary_sheet.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,6 +24,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isOnline = false;
   bool showRequest = false;
+
+  // Mock data — Notificações
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      title: 'Novo pedido próximo',
+      description: 'Um novo serviço de Elétrica está disponível a 2.5km de você.',
+      time: 'há 5 min',
+      icon: LucideIcons.map_pin,
+      iconColor: Colors.blue,
+      isUnread: true,
+    ),
+    NotificationItem(
+      title: 'Pagamento recebido',
+      description: 'Sua transferência de R\$ 250,00 foi concluída com sucesso.',
+      time: 'há 2 horas',
+      icon: LucideIcons.circle_check,
+      iconColor: Colors.green,
+    ),
+    NotificationItem(
+      title: 'Nova avaliação',
+      description: 'João Silva te avaliou com 5 estrelas: "Excelente profissional!".',
+      time: 'Ontem',
+      icon: LucideIcons.star,
+      iconColor: Colors.amber,
+      isUnread: true,
+    ),
+  ];
 
   // Map
   late final MapController _mapController = MapController();
@@ -77,6 +105,15 @@ class _HomePageState extends State<HomePage> {
         services: _recentServices,
         totalEarnings: 'R\$ 250,00',
       ),
+    );
+  }
+
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => NotificationsSheet(notifications: _notifications),
     );
   }
 
@@ -183,14 +220,22 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   if (isOnline) _buildEarningsBadge(),
-                  _buildIconButton(
-                    LucideIcons.settings,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
-                      );
-                    },
+                  Row(
+                    children: [
+                      _buildNotificationButton(),
+                      const SizedBox(width: 8),
+                      _buildIconButton(
+                        LucideIcons.settings,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -355,6 +400,33 @@ class _HomePageState extends State<HomePage> {
         icon: Icon(icon, color: context.colors.textPrimary),
         onPressed: onPressed ?? () {},
       ),
+    );
+  }
+
+  Widget _buildNotificationButton() {
+    final hasUnread = _notifications.any((n) => n.isUnread);
+
+    return Stack(
+      children: [
+        _buildIconButton(
+          LucideIcons.bell,
+          onPressed: _showNotifications,
+        ),
+        if (hasUnread)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: context.colors.themePrimary,
+                shape: BoxShape.circle,
+                border: Border.all(color: context.colors.surface, width: 2),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
