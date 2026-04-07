@@ -3,6 +3,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_event.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_state.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -13,7 +16,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true;
-  double _workRadius = 15.0;
 
   @override
   Widget build(BuildContext context) {
@@ -127,17 +129,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
           _buildSectionHeader('PARÂMETROS DE TRABALHO'),
-          _buildSliderTile(
-            icon: LucideIcons.map_pin,
-            title: 'Raio de Atuação',
-            value: _workRadius,
-            min: 5,
-            max: 50,
-            label: '${_workRadius.toInt()} km',
-            onChanged: (value) {
-              setState(() {
-                _workRadius = value;
-              });
+          BlocBuilder<ConfigBloc, ConfigState>(
+            builder: (context, state) {
+              return _buildSliderTile(
+                icon: LucideIcons.map_pin,
+                title: 'Raio de Atuação',
+                value: state.raioAtuacao,
+                min: 5,
+                max: 50,
+                label: '${state.raioAtuacao.toInt()} km',
+                onChanged: (value) {
+                  context.read<ConfigBloc>().add(UpdateRaioAtuacao(value));
+                },
+              );
             },
           ),
           _buildActionTile(

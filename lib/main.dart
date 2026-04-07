@@ -5,6 +5,7 @@ import 'package:flutter_tcc/features/onboard/presentation/pages/intro_page.dart'
 import 'package:flutter_tcc/injection_container.dart' as di;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => di.sl<AuthBloc>()),
         BlocProvider(create: (_) => di.sl<ThemeCubit>()),
+        BlocProvider(create: (_) => di.sl<ConfigBloc>()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {

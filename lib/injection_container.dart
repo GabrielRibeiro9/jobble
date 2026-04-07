@@ -12,6 +12,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
 
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 
 final sl = GetIt.instance;
@@ -51,4 +52,5 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DioClient(tokenService: sl()));
   sl.registerLazySingleton(() => TokenService());
   sl.registerLazySingleton(() => ThemeCubit());
+  sl.registerLazySingleton(() => ConfigBloc());
 }

@@ -1,5 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
+import 'package:flutter_tcc/features/settings/presentation/bloc/config_state.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/core/widgets/star_rating.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -286,7 +288,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMap() {
-    if (_isLoadingLocation) {
+    final pos = _currentPosition;
+
+    if (_isLoadingLocation || pos == null) {
       return Container(
         color: context.colors.background,
         child: Center(
@@ -294,11 +298,11 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(color: context.colors.themePrimary),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 'Carregando mapa...',
                 style: TextStyle(
-                  color: context.colors.textSecondary,
+                  color: Colors.grey,
                   fontSize: 14,
                 ),
               ),
@@ -313,79 +317,95 @@ class _HomePageState extends State<HomePage> {
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(initialCenter: _currentPosition!, initialZoom: 16),
-      children: [
-        TileLayer(
-          urlTemplate: urlTemplate,
-          subdomains: const ['a', 'b', 'c', 'd'],
-          userAgentPackageName: 'com.example.flutter_tcc',
-        ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: _currentPosition!,
-              width: 120,
-              height: 120,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  // Ponto de localização (centralizado no ponto GPS)
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? context.colors.textPrimary.withOpacity(0.2)
-                          : context.colors.themePrimary.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
+    return BlocBuilder<ConfigBloc, ConfigState>(
+      builder: (context, state) {
+        return FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(initialCenter: pos, initialZoom: 16),
+          children: [
+            TileLayer(
+              urlTemplate: urlTemplate,
+              subdomains: const ['a', 'b', 'c', 'd'],
+              userAgentPackageName: 'com.example.flutter_tcc',
+            ),
+            // Overlay de Raio de Atuação (Ultra-Safe)
+            CircleLayer(
+              circles: [
+                CircleMarker(
+                  point: pos,
+                  radius: state.raioAtuacao * 1000,
+                  useRadiusInMeter: true,
+                  color: Colors.blue.withOpacity(0.1),
+                  borderColor: Colors.blue.withOpacity(0.3),
+                  borderStrokeWidth: 2,
+                ),
+              ],
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: pos,
+                  width: 120,
+                  height: 120,
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     alignment: Alignment.center,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: context.colors.themePrimary,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 6,
-                        height: 6,
+                    children: [
+                      // Ponto de localização (centralizado no ponto GPS)
+                      Container(
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
-                          color: context.colors.background,
+                          color: isDark
+                              ? Colors.white.withOpacity(0.2)
+                              : context.colors.themePrimary.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
-                      ),
-                    ),
-                  ),
-                  // Avatar subindo a partir do ponto central
-                  Transform.translate(
-                    offset: const Offset(0, -42),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: context.colors.textPrimary,
-                          width: 3,
+                        alignment: Alignment.center,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: context.colors.themePrimary,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const ProfileAvatar(
-                        size: 56,
-                        imageUrl:
-                            'https://github.com/filiperotherds.png', // Opcional para mostrar a imagem
-                        fallbackName: 'Você',
+                      // Avatar subindo a partir do ponto central
+                      Transform.translate(
+                        offset: const Offset(0, -42),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark ? Colors.white : Colors.black,
+                              width: 3,
+                            ),
+                          ),
+                          child: const ProfileAvatar(
+                            size: 56,
+                            imageUrl: 'https://github.com/filiperotherds.png',
+                            fallbackName: 'Você',
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
