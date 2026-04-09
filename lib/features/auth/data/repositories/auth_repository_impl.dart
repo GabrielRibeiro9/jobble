@@ -1,3 +1,4 @@
+import 'package:flutter_tcc/features/auth/domain/entities/user.dart';
 import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_tcc/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:flutter_tcc/features/auth/data/models/login_request.dart';
@@ -41,5 +42,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> completeOnboarding(String name, String cpf) async {
     await remoteDataSource.completeOnboarding(name, cpf);
+  }
+  @override
+  Future<User> getMe() async {
+    return await remoteDataSource.getMe();
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/core/widgets/star_rating.dart';
@@ -98,42 +101,54 @@ class HomeDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 24,
-        left: 24,
-        right: 24,
-        bottom: 24,
-      ),
-      color: context.colors.surface,
-      child: Row(
-        children: [
-          const ProfileAvatar(
-            size: 64,
-            imageUrl: 'https://github.com/filiperotherds.png',
-            fallbackName: 'Filipe Rother',
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String? avatarUrl;
+        String name = 'Convidado';
+
+        if (state is AuthSuccess && state.user != null) {
+          avatarUrl = state.user!.avatarUrl;
+          name = state.user!.name ?? 'Usuário';
+        }
+
+        return Container(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 24,
+            left: 24,
+            right: 24,
+            bottom: 24,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Filipe Rother',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+          color: context.colors.surface,
+          child: Row(
+            children: [
+              ProfileAvatar(
+                size: 64,
+                imageUrl: avatarUrl,
+                fallbackName: name,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        color: context.colors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const StarRating(rating: 4.8, hiring: 124),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                const StarRating(rating: 4.8, hiring: 124),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

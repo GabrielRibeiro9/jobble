@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -117,100 +121,111 @@ class _ProfilePageState extends State<ProfilePage>
   // ─── HEADER ──────────────────────────────────────────────────────
 
   Widget _buildProfileHeader() {
-    return Container(
-      color: context.colors.background,
-      child: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 32),
-            // Avatar com botão de câmera
-            Stack(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: context.colors.surfaceLight,
-                    child: Icon(
-                      Icons.person,
-                      size: 56,
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () => _showChangePhotoDialog(),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: context.colors.textPrimary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: context.colors.background,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              _userName,
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                _userSpecialty,
-                style: TextStyle(
-                  color: context.colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String? avatarUrl;
+        String name = 'Usuário';
+        String email = '';
+
+        if (state is AuthSuccess && state.user != null) {
+          avatarUrl = state.user!.avatarUrl;
+          name = state.user!.name ?? 'Usuário';
+          email = state.user!.email;
+        }
+
+        return Container(
+          color: context.colors.background,
+          child: SafeArea(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: context.colors.textSecondary,
-                  size: 16,
+                const SizedBox(height: 32),
+                // Avatar com botão de câmera
+                Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: ProfileAvatar(
+                        size: 96,
+                        imageUrl: avatarUrl,
+                        fallbackName: name,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () => _showChangePhotoDialog(),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: context.colors.textPrimary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: context.colors.background,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 4),
+                const SizedBox(height: 14),
                 Text(
-                  _userRegion,
+                  name,
                   style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 13,
+                    color: context.colors.textPrimary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: context.colors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    email,
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: context.colors.textSecondary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _userRegion,
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

@@ -61,3 +61,5 @@ class ResendVerificationEmailRequested extends AuthEvent {
   @override
   List<Object> get props => [email];
 }
+
+class UserRequested extends AuthEvent {}
