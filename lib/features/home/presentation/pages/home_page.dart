@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
+import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_state.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
@@ -91,6 +94,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _initLocation();
+    context.read<AuthBloc>().add(UserRequested());
   }
 
   @override
@@ -391,10 +395,23 @@ class _HomePageState extends State<HomePage> {
                               width: 3,
                             ),
                           ),
-                          child: const ProfileAvatar(
-                            size: 56,
-                            imageUrl: 'https://github.com/filiperotherds.png',
-                            fallbackName: 'Você',
+                          child: BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, authState) {
+                              String? avatarUrl;
+                              String fallbackName = 'Você';
+
+                              if (authState is AuthSuccess &&
+                                  authState.user != null) {
+                                avatarUrl = authState.user!.avatarUrl;
+                                fallbackName = authState.user!.name ?? 'Você';
+                              }
+
+                              return ProfileAvatar(
+                                size: 56,
+                                imageUrl: avatarUrl,
+                                fallbackName: fallbackName,
+                              );
+                            },
                           ),
                         ),
                       ),

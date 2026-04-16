@@ -6,6 +6,7 @@ import 'package:flutter_tcc/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/get_me_usecase.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
 
@@ -15,6 +16,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final VerifyEmailUseCase verifyEmailUseCase;
   final CompleteOnboardingUseCase completeOnboardingUseCase;
   final ResendVerificationCodeUseCase resendVerificationCodeUseCase;
+  final GetMeUseCase getMeUseCase;
   final TokenService tokenService;
 
   AuthBloc({
@@ -23,6 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.verifyEmailUseCase,
     required this.completeOnboardingUseCase,
     required this.resendVerificationCodeUseCase,
+    required this.getMeUseCase,
     required this.tokenService,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
@@ -30,6 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<EmailVerificationSubmitted>(_onEmailVerificationSubmitted);
     on<CompleteOnboardingSubmitted>(_onCompleteOnboardingSubmitted);
     on<ResendVerificationEmailRequested>(_onResendVerificationEmailRequested);
+    on<UserRequested>(_onUserRequested);
   }
 
   Future<void> _onResendVerificationEmailRequested(
@@ -51,7 +55,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final result = await loginUseCase.execute(event.email, event.password);
       await tokenService.saveToken(result.accessToken);
-      emit(AuthSuccess(accessToken: result.accessToken));
+      
+      final user = await getMeUseCase.execute();
+      emit(AuthSuccess(accessToken: result.accessToken, user: user));
     } catch (e) {
       final message = e.toString().replaceAll('Exception: ', '');
       emit(AuthFailure(message: message));
@@ -102,6 +108,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       final message = e.toString().replaceAll('Exception: ', '');
       emit(AuthFailure(message: message));
+    }
+  }
+
+  Future<void> _onUserRequested(
+    UserRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    String? token;
+    
+    if (currentState is AuthSuccess) {
+      token = currentState.accessToken;
+    } else {
+      token = await tokenService.getToken();
+    }
+
+    if (token != null) {
+      try {
+        final user = await getMeUseCase.execute();
+        emit(AuthSuccess(accessToken: token, user: user));
+      } catch (e) {
+        // If it fails, we keep the state or handle accordingly
+      }
     }
   }
 }

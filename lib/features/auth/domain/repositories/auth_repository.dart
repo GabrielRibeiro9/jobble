@@ -1,3 +1,4 @@
+import '../../domain/entities/user.dart';
 import '../../data/models/login_response.dart';
 
 abstract class AuthRepository {
@@ -11,4 +12,5 @@ abstract class AuthRepository {
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
   Future<void> completeOnboarding(String name, String cpf);
+  Future<User> getMe();
 }

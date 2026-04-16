@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_tcc/features/auth/data/models/login_request.dart';
 import 'package:flutter_tcc/features/auth/data/models/signup_request.dart';
 import 'package:flutter_tcc/features/auth/data/models/login_response.dart';
+import 'package:flutter_tcc/features/auth/data/models/user_model.dart';
 import 'package:flutter_tcc/core/network/dio_client.dart';
 
 abstract class AuthRemoteDataSource {
@@ -10,6 +11,7 @@ abstract class AuthRemoteDataSource {
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
   Future<void> completeOnboarding(String name, String cpf);
+  Future<UserModel> getMe();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -103,6 +105,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         '/auth/complete-onboarding',
         data: {'name': name, 'cpf': cpf},
       );
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final message = e.response?.data['message'];
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+  @override
+  Future<UserModel> getMe() async {
+    try {
+      final response = await dioClient.dio.get('/users/profile');
+      return UserModel.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         final message = e.response?.data['message'];
