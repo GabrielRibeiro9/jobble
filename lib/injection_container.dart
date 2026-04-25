@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_tcc/core/network/dio_client.dart';
 import 'package:flutter_tcc/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:flutter_tcc/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_tcc/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/login_usecase.dart';
@@ -10,6 +11,8 @@ import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_us
 import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/get_me_usecase.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
+
+import 'package:flutter_tcc/core/database/database_helper.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
 
@@ -43,15 +46,22 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl()),
+    () => AuthRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+    ),
   );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(dioClient: sl()),
   );
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(databaseHelper: sl()),
+  );
 
   // Core
+  sl.registerLazySingleton(() => DatabaseHelper());
   sl.registerLazySingleton(() => DioClient(tokenService: sl()));
   sl.registerLazySingleton(() => TokenService());
   sl.registerLazySingleton(() => ThemeCubit());

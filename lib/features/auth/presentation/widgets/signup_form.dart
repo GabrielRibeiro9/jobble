@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
@@ -260,14 +261,7 @@ class _SignupFormState extends State<SignupForm> {
                   ),
                 ),
                 child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                    ? const CupertinoActivityIndicator(color: Colors.white)
                     : Text(
                         'Criar Conta',
                         style: TextStyle(

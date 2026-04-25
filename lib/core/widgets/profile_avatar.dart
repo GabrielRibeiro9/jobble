@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 
 class ProfileAvatar extends StatelessWidget {
@@ -39,11 +40,8 @@ class ProfileAvatar extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => _buildFallback(context),
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              color: context.colors.textSecondary,
-              strokeWidth: 2,
-            ),
+          return const Center(
+            child: CupertinoActivityIndicator(),
           );
         },
       );

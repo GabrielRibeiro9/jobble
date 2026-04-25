@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
@@ -83,7 +84,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                       onFinish: isLoading ? () {} : _onFinish,
                     ),
                     if (isLoading)
-                      const Center(child: CircularProgressIndicator()),
+                      const Center(child: CupertinoActivityIndicator()),
                   ],
                 );
               },

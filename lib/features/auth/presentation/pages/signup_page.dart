@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
@@ -209,7 +210,7 @@ class _SignupPageState extends State<SignupPage> {
                           onContinue: isLoading ? () {} : _onStep1Continue,
                         ),
                         if (isLoading && _currentStep == 0)
-                          const Center(child: CircularProgressIndicator()),
+                          const Center(child: CupertinoActivityIndicator()),
                       ],
                     ),
                     Stack(
@@ -219,7 +220,7 @@ class _SignupPageState extends State<SignupPage> {
                           onContinue: isLoading ? (_) {} : _onStep2Continue,
                         ),
                         if (isLoading && _currentStep == 1)
-                          const Center(child: CircularProgressIndicator()),
+                          const Center(child: CupertinoActivityIndicator()),
                       ],
                     ),
                     Stack(
@@ -230,7 +231,7 @@ class _SignupPageState extends State<SignupPage> {
                           onFinish: isLoading ? () {} : _onFinish,
                         ),
                         if (isLoading && _currentStep == 2)
-                          const Center(child: CircularProgressIndicator()),
+                          const Center(child: CupertinoActivityIndicator()),
                       ],
                     ),
                   ],

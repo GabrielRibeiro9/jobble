@@ -5,10 +5,16 @@ import 'package:flutter_tcc/features/auth/data/models/login_request.dart';
 import 'package:flutter_tcc/features/auth/data/models/signup_request.dart';
 import 'package:flutter_tcc/features/auth/data/models/login_response.dart';
 
+import 'package:flutter_tcc/features/auth/data/datasources/auth_local_data_source.dart';
+
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
+  final AuthLocalDataSource localDataSource;
 
-  AuthRepositoryImpl({required this.remoteDataSource});
+  AuthRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<LoginResponse> login(String email, String password) async {
@@ -45,6 +51,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
   @override
   Future<User> getMe() async {
-    return await remoteDataSource.getMe();
+    try {
+      final userModel = await remoteDataSource.getMe();
+      // Salva ou atualiza os dados no cache local
+      await localDataSource.cacheUser(userModel);
+      return userModel;
+    } catch (e) {
+      // Em caso de falha de conexão ou erro, tenta buscar do cache
+      final cachedUser = await localDataSource.getCachedUser();
+      if (cachedUser != null) {
+        return cachedUser;
+      }
+      rethrow;
+    }
   }
 }

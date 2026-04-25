@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
@@ -15,9 +16,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/offline_dashboard.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/service_summary_sheet.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/main_toggle_button.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/earnings_floating_card.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/home_bottom_dashboard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,33 +31,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isOnline = false;
   bool showRequest = false;
-
-  // Mock data — Notificações
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      title: 'Novo pedido próximo',
-      description: 'Um novo serviço de Elétrica está disponível a 2.5km de você.',
-      time: 'há 5 min',
-      icon: LucideIcons.map_pin,
-      iconColor: Colors.blue,
-      isUnread: true,
-    ),
-    NotificationItem(
-      title: 'Pagamento recebido',
-      description: 'Sua transferência de R\$ 250,00 foi concluída com sucesso.',
-      time: 'há 2 horas',
-      icon: LucideIcons.circle_check,
-      iconColor: Colors.green,
-    ),
-    NotificationItem(
-      title: 'Nova avaliação',
-      description: 'João Silva te avaliou com 5 estrelas: "Excelente profissional!".',
-      time: 'Ontem',
-      icon: LucideIcons.star,
-      iconColor: Colors.amber,
-      isUnread: true,
-    ),
-  ];
+  bool showEarningsCard = false;
 
   // Map
   late final MapController _mapController = MapController();
@@ -103,24 +79,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _toggleSummary() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ServiceSummarySheet(
-        services: _recentServices,
-        totalEarnings: 'R\$ 250,00',
-      ),
-    );
-  }
-
-  void _showNotifications() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => NotificationsSheet(notifications: _notifications),
-    );
+    setState(() {
+      showEarningsCard = !showEarningsCard;
+    });
   }
 
   Future<void> _initLocation() async {
@@ -206,85 +167,157 @@ class _HomePageState extends State<HomePage> {
           // 1. Real OpenStreetMap
           _buildMap(),
 
-          // 2. Offline Dashboard
-          if (!isOnline) const Positioned.fill(child: OfflineDashboard()),
+          // 2. Main Toggle Button (Circular)
+          if (!showRequest)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 110),
+                child: MainToggleButton(
+                  isOnline: isOnline,
+                  onTap: toggleOnline,
+                ),
+              ),
+            ),
 
-          // 3. Top Action Bar
+          // 3. Expandable Bottom Dashboard
+          if (!showRequest)
+            HomeBottomDashboard(
+              isOnline: isOnline,
+              onToggleDrawer: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => ServiceSummarySheet(
+                    services: _recentServices,
+                    totalEarnings: 'R\$250,00',
+                  ),
+                );
+              },
+            ),
+
+          if (!showRequest)
+            Positioned(
+              bottom: 140,
+              left: 24,
+              child: _buildIconButton(Icons.help_outline, onPressed: () {}),
+            ),
+          if (!showRequest)
+            Positioned(
+              bottom: 140,
+              right: 24,
+              child: _buildIconButton(Icons.my_location, onPressed: _centerMap),
+            ),
+
+          // 5. Dark Backdrop for Earnings Card
+          if (showEarningsCard)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () => setState(() => showEarningsCard = false),
+                child: Container(color: Colors.black.withOpacity(0.5)),
+              ),
+            ),
+
+          // 7. Lateral Top Buttons (Help & Settings) - Dimmed by Backdrop
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 36.0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Builder(
-                    builder: (context) => _buildIconButton(
-                      Icons.menu,
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                    ),
+                  _buildIconButton(
+                    Icons.help_outline,
+                    onPressed: () {
+                      // Help action
+                    },
                   ),
-                  if (isOnline) _buildEarningsBadge(),
-                  Row(
-                    children: [
-                      _buildNotificationButton(),
-                      const SizedBox(width: 8),
-                      _buildIconButton(
-                        LucideIcons.settings,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SettingsPage(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                  const Spacer(),
+                  _buildIconButton(
+                    LucideIcons.settings,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SettingsPage()),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
           ),
 
-          // 4. Bottom Controls
-          if (!showRequest)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: _buildBottomControls(),
+          // 8. Earnings Floating Card
+          if (showEarningsCard)
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16.0,
+                ),
+                child: EarningsFloatingCard(
+                  lastService: _recentServices.first,
+                  onSeeAll: () {
+                    setState(() => showEarningsCard = false);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => ServiceSummarySheet(
+                        services: _recentServices,
+                        totalEarnings: 'R\$ 250,00',
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
 
-          // 5. Incoming Request Overlay
+          // 9. Central Earnings Badge - Always on Top
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 36.0),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: _buildEarningsBadge(),
+              ),
+            ),
+          ),
+
+          // 6. Incoming Request Overlay
           if (showRequest)
             Align(
               alignment: Alignment.bottomCenter,
               child: _buildIncomingRequestCard(),
             ),
 
-          // 6. Simulation button above card
+          // 7. Simulation button above card
           if (isOnline && !showRequest)
             Positioned(
-              top: 120,
-              right: 32,
-              child: Center(
-                child: FloatingActionButton.extended(
-                  onPressed: simulateIncomingRequest,
-                  backgroundColor: context.colors.themePrimary,
-                  elevation: 0,
-                  icon: Icon(
-                    Icons.notifications_active,
-                    color: context.colors.onPrimary,
-                  ),
-                  label: Text(
-                    'Simular Pedido',
-                    style: TextStyle(
-                      color: context.colors.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+              top: 180,
+              right: 24,
+              child: _buildIconButton(
+                Icons.notifications_active,
+                onPressed: simulateIncomingRequest,
               ),
+            ),
+
+          // Help and Location buttons above Bottom Sheet
+          if (!showRequest)
+            Positioned(
+              bottom: 140,
+              left: 24,
+              child: _buildIconButton(Icons.help_outline, onPressed: () {}),
+            ),
+          if (!showRequest)
+            Positioned(
+              bottom: 140,
+              right: 24,
+              child: _buildIconButton(Icons.my_location, onPressed: _centerMap),
             ),
         ],
       ),
@@ -301,14 +334,11 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: context.colors.themePrimary),
+              const CupertinoActivityIndicator(),
               const SizedBox(height: 16),
               const Text(
                 'Carregando mapa...',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
             ],
           ),
@@ -427,43 +457,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildIconButton(IconData icon, {VoidCallback? onPressed}) {
+    final colors = context.colors;
     return Container(
+      width: 52,
+      height: 52,
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: colors.surface,
         shape: BoxShape.circle,
-        border: Border.all(color: context.colors.border, width: 1),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: context.colors.textPrimary),
-        onPressed: onPressed ?? () {},
-      ),
-    );
-  }
-
-  Widget _buildNotificationButton() {
-    final hasUnread = _notifications.any((n) => n.isUnread);
-
-    return Stack(
-      children: [
-        _buildIconButton(
-          LucideIcons.bell,
-          onPressed: _showNotifications,
+        border: Border.all(
+          color: colors.textPrimary.withOpacity(0.05),
+          width: 1.5,
         ),
-        if (hasUnread)
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: context.colors.themePrimary,
-                shape: BoxShape.circle,
-                border: Border.all(color: context.colors.surface, width: 2),
-              ),
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-      ],
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed ?? () {},
+          customBorder: const CircleBorder(),
+          child: Icon(icon, color: colors.textPrimary, size: 24),
+        ),
+      ),
     );
   }
 
@@ -478,145 +498,28 @@ class _HomePageState extends State<HomePage> {
       onTap: _toggleSummary,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: context.colors.surface,
+          color: Colors.black,
           borderRadius: BorderRadius.circular(30),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              LucideIcons.wallet,
-              color: context.colors.textSecondary,
-              size: 16,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'R\$ 250,00',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              LucideIcons.chevron_down,
-              color: context.colors.textSecondary,
-              size: 14,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Removed _buildSummaryPanel and _buildServiceCard as they are now in ServiceSummarySheet
-
-  Widget _buildBottomControls() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 16,
-        children: [
-          if (isOnline)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildFloatingButton(Icons.help_outline, onPressed: () {}),
-                _buildFloatingButton(Icons.my_location, onPressed: _centerMap),
-              ],
-            ),
-          _buildMainToggleButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFloatingButton(
-    IconData icon, {
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: context.colors.textPrimary.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: IconButton(
-        iconSize: 20,
-        icon: Icon(icon, color: context.colors.textPrimary),
-        onPressed: onPressed,
-      ),
-    );
-  }
-
-  Widget _buildMainToggleButton() {
-    return GestureDetector(
-      onTap: toggleOnline,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(horizontal: isOnline ? 20 : 0),
-        height: 56,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: isOnline
-              ? context.colors.themePrimary
-              : context.colors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isOnline ? Colors.transparent : context.colors.border,
-            width: 1,
+        alignment: Alignment.center,
+        child: Text(
+          'R\$ 250,00',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        child: isOnline
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.power,
-                    color: context.colors.onPrimary,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Online',
-                    style: TextStyle(
-                      color: context.colors.onPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.power_off,
-                    color: context.colors.textSecondary,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Offline',
-                    style: TextStyle(
-                      color: context.colors.textSecondary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
