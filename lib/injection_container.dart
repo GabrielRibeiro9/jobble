@@ -19,6 +19,11 @@ import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 
+import 'package:flutter_tcc/features/home/data/datasources/home_remote_data_source.dart';
+import 'package:flutter_tcc/features/home/data/repositories/home_repository_impl.dart';
+import 'package:flutter_tcc/features/home/domain/repositories/home_repository.dart';
+import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -58,6 +63,20 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(databaseHelper: sl()),
+  );
+
+  // Features - Home
+  // Bloc
+  sl.registerFactory(() => HomeJobsBloc(repository: sl()));
+
+  // Repository
+  sl.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(dioClient: sl()),
   );
 
   // Core

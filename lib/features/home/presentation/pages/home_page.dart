@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
@@ -14,12 +13,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/service_summary_sheet.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/main_toggle_button.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/earnings_floating_card.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/home_bottom_dashboard.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
+import 'package:flutter_tcc/features/home/presentation/widgets/home_bottom_sheet.dart';
+import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
+import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_event.dart';
+import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_state.dart';
+import 'package:flutter_tcc/injection_container.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,7 +33,35 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isOnline = false;
   bool showRequest = false;
-  bool showEarningsCard = false;
+
+  // Mock data — Notificações
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      title: 'Novo pedido próximo',
+      description:
+          'Um novo serviço de Elétrica está disponível a 2.5km de você.',
+      time: 'há 5 min',
+      icon: LucideIcons.map_pin,
+      iconColor: Colors.blue,
+      isUnread: true,
+    ),
+    NotificationItem(
+      title: 'Pagamento recebido',
+      description: 'Sua transferência de R\$ 250,00 foi concluída com sucesso.',
+      time: 'há 2 horas',
+      icon: LucideIcons.circle_check,
+      iconColor: Colors.green,
+    ),
+    NotificationItem(
+      title: 'Nova avaliação',
+      description:
+          'João Silva te avaliou com 5 estrelas: "Excelente profissional!".',
+      time: 'Ontem',
+      icon: LucideIcons.star,
+      iconColor: Colors.amber,
+      isUnread: true,
+    ),
+  ];
 
   // Map
   late final MapController _mapController = MapController();
@@ -73,15 +103,34 @@ class _HomePageState extends State<HomePage> {
     context.read<AuthBloc>().add(UserRequested());
   }
 
+  void _fetchJobsToday(BuildContext context) {
+    context.read<HomeJobsBloc>().add(GetCompletedJobsTodayRequested());
+  }
+
   @override
   void dispose() {
     super.dispose();
   }
 
   void _toggleSummary() {
-    setState(() {
-      showEarningsCard = !showEarningsCard;
-    });
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ServiceSummarySheet(
+        services: _recentServices,
+        totalEarnings: 'R\$ 250,00',
+      ),
+    );
+  }
+
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => NotificationsSheet(notifications: _notifications),
+    );
   }
 
   Future<void> _initLocation() async {
@@ -159,167 +208,96 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      drawer: const HomeDrawer(),
-      body: Stack(
-        children: [
-          // 1. Real OpenStreetMap
-          _buildMap(),
+    return BlocProvider(
+      create: (context) =>
+          sl<HomeJobsBloc>()..add(GetCompletedJobsTodayRequested()),
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: context.colors.background,
+            drawer: const HomeDrawer(),
+            body: Stack(
+              children: [
+                // 2. Map (Real OpenStreetMap)
+                _buildMap(),
 
-          // 2. Main Toggle Button (Circular)
-          if (!showRequest)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 110),
-                child: MainToggleButton(
-                  isOnline: isOnline,
-                  onTap: toggleOnline,
-                ),
-              ),
-            ),
-
-          // 3. Expandable Bottom Dashboard
-          if (!showRequest)
-            HomeBottomDashboard(
-              isOnline: isOnline,
-              onToggleDrawer: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => ServiceSummarySheet(
-                    services: _recentServices,
-                    totalEarnings: 'R\$250,00',
-                  ),
-                );
-              },
-            ),
-
-          if (!showRequest)
-            Positioned(
-              bottom: 140,
-              left: 24,
-              child: _buildIconButton(Icons.help_outline, onPressed: () {}),
-            ),
-          if (!showRequest)
-            Positioned(
-              bottom: 140,
-              right: 24,
-              child: _buildIconButton(Icons.my_location, onPressed: _centerMap),
-            ),
-
-          // 5. Dark Backdrop for Earnings Card
-          if (showEarningsCard)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () => setState(() => showEarningsCard = false),
-                child: Container(color: Colors.black.withOpacity(0.5)),
-              ),
-            ),
-
-          // 7. Lateral Top Buttons (Help & Settings) - Dimmed by Backdrop
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 36.0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildIconButton(
-                    Icons.help_outline,
-                    onPressed: () {
-                      // Help action
-                    },
-                  ),
-                  const Spacer(),
-                  _buildIconButton(
-                    LucideIcons.settings,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 8. Earnings Floating Card
-          if (showEarningsCard)
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16.0,
-                ),
-                child: EarningsFloatingCard(
-                  lastService: _recentServices.first,
-                  onSeeAll: () {
-                    setState(() => showEarningsCard = false);
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => ServiceSummarySheet(
-                        services: _recentServices,
-                        totalEarnings: 'R\$ 250,00',
+                // 3. Top Action Bar
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: SizedBox(
+                      height: 50,
+                      child: Stack(
+                        children: [
+                          // Menu Button (Left)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Builder(
+                              builder: (scaffoldContext) => _buildIconButton(
+                                Icons.menu,
+                                onPressed: () =>
+                                    Scaffold.of(scaffoldContext).openDrawer(),
+                              ),
+                            ),
+                          ),
+                          // Earnings Pill (Center)
+                          Align(
+                            alignment: Alignment.center,
+                            child: _buildEarningsBadge(context),
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
-            ),
 
-          // 9. Central Earnings Badge - Always on Top
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 36.0),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: _buildEarningsBadge(),
-              ),
-            ),
-          ),
+                // 4. Bottom Toggle Button
+                if (!showRequest)
+                  Positioned(
+                    bottom: 40,
+                    left: 20,
+                    right: 20,
+                    child: _buildMainToggleButton(),
+                  ),
 
-          // 6. Incoming Request Overlay
-          if (showRequest)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: _buildIncomingRequestCard(),
-            ),
+                // 5. Incoming Request Overlay
+                if (showRequest)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: _buildIncomingRequestCard(),
+                  ),
 
-          // 7. Simulation button above card
-          if (isOnline && !showRequest)
-            Positioned(
-              top: 180,
-              right: 24,
-              child: _buildIconButton(
-                Icons.notifications_active,
-                onPressed: simulateIncomingRequest,
-              ),
+                // 6. Simulation button above card
+                if (isOnline && !showRequest)
+                  Positioned(
+                    top: 120,
+                    right: 32,
+                    child: Center(
+                      child: FloatingActionButton.extended(
+                        onPressed: simulateIncomingRequest,
+                        backgroundColor: context.colors.themePrimary,
+                        elevation: 0,
+                        icon: Icon(
+                          Icons.notifications_active,
+                          color: context.colors.onPrimary,
+                        ),
+                        label: Text(
+                          'Simular Pedido',
+                          style: TextStyle(
+                            color: context.colors.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-
-          // Help and Location buttons above Bottom Sheet
-          if (!showRequest)
-            Positioned(
-              bottom: 140,
-              left: 24,
-              child: _buildIconButton(Icons.help_outline, onPressed: () {}),
-            ),
-          if (!showRequest)
-            Positioned(
-              bottom: 140,
-              right: 24,
-              child: _buildIconButton(Icons.my_location, onPressed: _centerMap),
-            ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -334,7 +312,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CupertinoActivityIndicator(),
+              CircularProgressIndicator(color: context.colors.themePrimary),
               const SizedBox(height: 16),
               const Text(
                 'Carregando mapa...',
@@ -457,21 +435,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildIconButton(IconData icon, {VoidCallback? onPressed}) {
-    final colors = context.colors;
     return Container(
-      width: 52,
-      height: 52,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: Colors.white,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: colors.textPrimary.withOpacity(0.05),
-          width: 1.5,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
@@ -481,9 +454,52 @@ class _HomePageState extends State<HomePage> {
         child: InkWell(
           onTap: onPressed ?? () {},
           customBorder: const CircleBorder(),
-          child: Icon(icon, color: colors.textPrimary, size: 24),
+          child: Icon(icon, color: Colors.black, size: 24),
         ),
       ),
+    );
+  }
+
+  Widget _buildFloatingButton(IconData icon, {Color? color}) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: color ?? Colors.black, size: 24),
+    );
+  }
+
+  Widget _buildNotificationButton() {
+    final hasUnread = _notifications.any((n) => n.isUnread);
+
+    return Stack(
+      children: [
+        _buildIconButton(LucideIcons.bell, onPressed: _showNotifications),
+        if (hasUnread)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: context.colors.themePrimary,
+                shape: BoxShape.circle,
+                border: Border.all(color: context.colors.surface, width: 2),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -493,13 +509,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildEarningsBadge() {
+  Widget _buildEarningsBadge(BuildContext context) {
     return GestureDetector(
       onTap: _toggleSummary,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(30),
@@ -511,14 +525,92 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        alignment: Alignment.center,
-        child: Text(
-          'R\$ 250,00',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
+          builder: (context, state) {
+            String earningsText = '0.00';
+            if (state is HomeJobsLoaded) {
+              earningsText = NumberFormat.currency(
+                symbol: '',
+                locale: 'pt_BR',
+              ).format(state.summary.totalEarnings);
+            }
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '\$',
+                  style: TextStyle(
+                    color: Color(0xFF2EB086),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                if (state is HomeJobsLoading)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                else
+                  Text(
+                    earningsText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Removed _buildSummaryPanel and _buildServiceCard as they are now in ServiceSummarySheet
+
+  Widget _buildMainToggleButton() {
+    return GestureDetector(
+      onTap: toggleOnline,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: 56,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isOnline ? Colors.black : Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isOnline ? LucideIcons.power : LucideIcons.power_off,
+              color: isOnline ? Colors.white : Colors.grey[300],
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              isOnline ? 'Online' : 'Offline',
+              style: TextStyle(
+                color: isOnline ? Colors.white : Colors.grey[300],
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -526,227 +618,267 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildIncomingRequestCard() {
     return Container(
-      margin: const EdgeInsets.all(16).copyWith(bottom: 32),
+      margin: const EdgeInsets.all(16).copyWith(bottom: 40),
       width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 8,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.colors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: context.colors.border, width: 1),
-            ),
+          // Top Row: Category badge + Close button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const ProfileAvatar(size: 48, fallbackName: 'José da Silva'),
-                const SizedBox(width: 12),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'José da Silva',
-                      style: TextStyle(
-                        color: context.colors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                // Category badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Serviços Elétricos',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const StarRating(rating: 3.7, hiring: 14),
-                  ],
+                  ),
+                ),
+                // Close button
+                GestureDetector(
+                  onTap: acceptOrRejectRequest,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: context.colors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: context.colors.border, width: 1),
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 16,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Categoria',
-                          style: TextStyle(
-                            color: context.colors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          'Serviços Elétricos',
-                          style: TextStyle(
-                            color: context.colors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
 
-                    // Botao para fechar o card
-                    IconButton(
-                      onPressed: acceptOrRejectRequest,
-                      icon: const Icon(Icons.close),
-                      iconSize: 16,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: context.colors.textPrimary.withOpacity(
-                          0.1,
-                        ),
-                        foregroundColor: context.colors.textPrimary,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(height: 16),
+
+          // Requester Name (Highlight)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'José da Silva',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Rating + Verified Badge
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.star, color: Colors.white, size: 16),
+                const SizedBox(width: 4),
+                const Text(
+                  '4.95',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  LucideIcons.shield_check,
+                  color: Colors.blue[400],
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Verificado',
+                  style: TextStyle(
+                    color: Colors.blue[400],
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Divider
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.white.withOpacity(0.08),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Trip Details
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                // Distance
+                Row(
+                  children: [
+                    Icon(
+                      LucideIcons.map_pin,
+                      color: Colors.grey[400],
+                      size: 16,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '3 min (1.1 km) de distância',
+                      style: TextStyle(
+                        color: Colors.grey[300],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                Text(
-                  'Aprox. 17 min de distância',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 14),
+
+                // Route
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 16,
+                      SizedBox(
+                        width: 8,
+                        child: Stack(
                           children: [
-                            SizedBox(
-                              width: 8,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: 20,
-                                    bottom: 0,
-                                    left: 3,
-                                    child: Container(
-                                      width: 2,
-                                      color: context.colors.textSecondary,
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 6,
-                                    left: 0,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: context.colors.textPrimary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            Positioned(
+                              top: 20,
+                              bottom: 0,
+                              left: 3,
+                              child: Container(
+                                width: 2,
+                                color: Colors.grey[600],
                               ),
                             ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 4,
-                                  children: [
-                                    Text(
-                                      'Descrição do serviço',
-                                      style: TextStyle(
-                                        color: context.colors.textPrimary,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Instalação de chuveiro elétrico, troca de tomadas e interruptores, reparo de curto-circuito, instalação de luminárias e ventiladores de teto, reparo de chuveiro elétrico.',
-                                      style: TextStyle(
-                                        color: context.colors.textSecondary,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
-                                  ],
+                            Positioned(
+                              top: 6,
+                              left: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 16,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Descrição do serviço',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Instalação de chuveiro elétrico, troca de tomadas e interruptores, reparo de curto-circuito.',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: 8,
+                        child: Stack(
                           children: [
-                            SizedBox(
-                              width: 8,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: 6,
-                                    left: 0,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: context.colors.textPrimary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            Positioned(
+                              top: 6,
+                              left: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 4,
-                                children: [
-                                  Text(
-                                    'Endereço',
-                                    style: TextStyle(
-                                      color: context.colors.textPrimary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Rua das Flores, 123 - Centro, São Paulo - SP, 01000-000',
-                                    style: TextStyle(
-                                      color: context.colors.textSecondary,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Endereço',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Rua das Flores, 123 - Centro, São Paulo - SP',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -755,14 +887,33 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: acceptOrRejectRequest,
-                    child: const Text('Aceitar'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Accept Button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: acceptOrRejectRequest,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2EB086),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
+                child: const Text(
+                  'Aceitar',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ),
         ],
