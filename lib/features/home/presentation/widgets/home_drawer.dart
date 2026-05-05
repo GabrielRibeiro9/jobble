@@ -5,7 +5,6 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
-import 'package:flutter_tcc/core/widgets/star_rating.dart';
 import 'package:flutter_tcc/features/schedule/presentation/pages/schedule_page.dart';
 import 'package:flutter_tcc/features/services/presentation/pages/services_page.dart';
 import 'package:flutter_tcc/features/gallery/presentation/pages/gallery_page.dart';
@@ -20,113 +19,138 @@ class HomeDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: context.colors.background,
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.calendar,
-                  title: 'Minha Agenda',
-                  onTap: () => Navigator.push(
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTopSection(context),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                children: [
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const SchedulePage()),
+                    icon: LucideIcons.inbox,
+                    title: 'Pendentes',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SchedulePage()),
+                    ),
                   ),
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.briefcase,
-                  title: 'Meus Serviços',
-                  onTap: () => Navigator.push(
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const ServicesPage()),
+                    icon: LucideIcons.briefcase,
+                    title: 'Meus Serviços',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ServicesPage()),
+                    ),
                   ),
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.image,
-                  title: 'Galeria de Trabalhos',
-                  onTap: () => Navigator.push(
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const GalleryPage()),
+                    icon: LucideIcons.image,
+                    title: 'Galeria',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const GalleryPage()),
+                    ),
                   ),
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.wallet,
-                  title: 'Carteira',
-                  onTap: () => Navigator.push(
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const WalletPage()),
+                    icon: LucideIcons.wallet,
+                    title: 'Carteira',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WalletPage()),
+                    ),
                   ),
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.star,
-                  title: 'Avaliações',
-                  onTap: () => Navigator.push(
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const ReviewsPage()),
+                    icon: LucideIcons.star,
+                    title: 'Avaliações',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReviewsPage()),
+                    ),
                   ),
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: LucideIcons.award,
-                  title: 'Certificados',
-                  onTap: () => Navigator.push(
+                  _buildMenuItem(
                     context,
-                    MaterialPageRoute(builder: (_) => const CertificatesPage()),
+                    icon: LucideIcons.award,
+                    title: 'Certificados',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CertificatesPage(),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Divider(),
-          _buildMenuItem(
-            context,
-            icon: LucideIcons.log_out,
-            title: 'Sair',
-            onTap: () {
-              // Handle logout
-            },
-            color: context.colors.error,
-          ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: _buildMenuItem(
+                context,
+                icon: LucideIcons.circle_question_mark,
+                title: 'Suporte',
+                onTap: () {
+                  // Handle support
+                },
+              ),
+            ),
+            _buildUserCard(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final logoAsset = isDark
+        ? 'assets/images/logo-jobble-white.png'
+        : 'assets/images/logo-jobble.png';
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(logoAsset, height: 32, fit: BoxFit.contain),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildUserCard(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         String? avatarUrl;
         String name = 'Convidado';
+        String email = 'Entrar na sua conta';
 
         if (state is AuthSuccess && state.user != null) {
           avatarUrl = state.user!.avatarUrl;
           name = state.user!.name ?? 'Usuário';
+          email = state.user!.email;
         }
 
         return Container(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 24,
-            left: 24,
-            right: 24,
-            bottom: 24,
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.colors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: context.colors.borderLight.withOpacity(0.1),
+            ),
           ),
-          color: context.colors.surface,
           child: Row(
             children: [
-              ProfileAvatar(
-                size: 64,
-                imageUrl: avatarUrl,
-                fallbackName: name,
-              ),
-              const SizedBox(width: 16),
+              ProfileAvatar(size: 40, imageUrl: avatarUrl, fallbackName: name),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,16 +158,30 @@ class HomeDrawer extends StatelessWidget {
                   children: [
                     Text(
                       name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: context.colors.textPrimary,
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const StarRating(rating: 4.8, hiring: 124),
+                    Text(
+                      email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
+              ),
+              Icon(
+                LucideIcons.chevrons_up_down,
+                color: context.colors.textSecondary,
+                size: 16,
               ),
             ],
           ),
@@ -160,16 +198,17 @@ class HomeDrawer extends StatelessWidget {
     Color? color,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: color ?? context.colors.textPrimary,
-        size: 22,
-      ),
+      dense: true,
+      visualDensity: const VisualDensity(vertical: -2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      minLeadingWidth: 0,
+      horizontalTitleGap: 12,
+      leading: Icon(icon, color: color ?? context.colors.textPrimary, size: 20),
       title: Text(
         title,
         style: TextStyle(
           color: color ?? context.colors.textPrimary,
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
       ),

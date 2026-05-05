@@ -6,7 +6,6 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_state.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
-import 'package:flutter_tcc/core/widgets/star_rating.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -16,7 +15,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/service_summary_sheet.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/home_bottom_sheet.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_event.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_state.dart';
@@ -539,9 +537,9 @@ class _HomePageState extends State<HomePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  '\$',
+                  'R\$',
                   style: TextStyle(
-                    color: Color(0xFF2EB086),
+                    color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),

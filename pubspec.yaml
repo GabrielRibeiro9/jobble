@@ -77,6 +77,8 @@ flutter:
     - assets/images/base-brasil-white.png
     - assets/images/google.svg
     - assets/images/intro_bg.png
+    - assets/images/logo-jobble.png
+    - assets/images/logo-jobble-white.png
     - assets/images/portfolio/
 
   # An image asset can refer to one or more resolution-specific "variants", see
