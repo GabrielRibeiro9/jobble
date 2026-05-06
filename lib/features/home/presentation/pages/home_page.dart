@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
@@ -18,6 +19,7 @@ import 'package:flutter_tcc/features/home/presentation/widgets/notifications_she
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_event.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_state.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/settings_center_page.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:intl/intl.dart';
 
@@ -31,6 +33,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isOnline = false;
   bool showRequest = false;
+  bool _showEarningsSummary = false;
+  late HomeJobsBloc _homeJobsBloc;
 
   // Mock data — Notificações
   final List<NotificationItem> _notifications = [
@@ -97,6 +101,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _homeJobsBloc = sl<HomeJobsBloc>()..add(GetCompletedJobsTodayRequested());
     _initLocation();
     context.read<AuthBloc>().add(UserRequested());
   }
@@ -107,6 +112,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _homeJobsBloc.close();
     super.dispose();
   }
 
@@ -206,14 +212,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          sl<HomeJobsBloc>()..add(GetCompletedJobsTodayRequested()),
+    return BlocProvider.value(
+      value: _homeJobsBloc,
       child: Builder(
         builder: (context) {
           return Scaffold(
             backgroundColor: context.colors.background,
-            drawer: const HomeDrawer(),
             body: Stack(
               children: [
                 // 2. Map (Real OpenStreetMap)
@@ -235,9 +239,13 @@ class _HomePageState extends State<HomePage> {
                             alignment: Alignment.centerLeft,
                             child: Builder(
                               builder: (scaffoldContext) => _buildIconButton(
-                                Icons.menu,
-                                onPressed: () =>
-                                    Scaffold.of(scaffoldContext).openDrawer(),
+                                LucideIcons.settings,
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SettingsCenterPage(),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -246,22 +254,44 @@ class _HomePageState extends State<HomePage> {
                             alignment: Alignment.center,
                             child: _buildEarningsBadge(context),
                           ),
+                          // Inbox Button (Right)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: _buildIconButton(
+                              LucideIcons.inbox,
+                              onPressed: () {
+                                // Navigate to inbox or show notifications
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
 
-                // 4. Bottom Toggle Button
-                if (!showRequest)
-                  Positioned(
-                    bottom: 40,
-                    left: 20,
-                    right: 20,
-                    child: _buildMainToggleButton(),
+                // 4. Map Overlay (Glassy when offline)
+                if (!isOnline)
+                  Positioned.fill(
+                    child: ClipRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        child: Container(color: Colors.white.withOpacity(0.25)),
+                      ),
+                    ),
                   ),
 
-                // 5. Incoming Request Overlay
+                // 5. Minimalist Bottom Toggle
+                if (!showRequest)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 40),
+                      child: _buildMinimalistToggle(),
+                    ),
+                  ),
+
+                // 7. Incoming Request Overlay
                 if (showRequest)
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -271,7 +301,7 @@ class _HomePageState extends State<HomePage> {
                 // 6. Simulation button above card
                 if (isOnline && !showRequest)
                   Positioned(
-                    top: 120,
+                    top: 200, // Moved down to avoid overlap
                     right: 32,
                     child: Center(
                       child: FloatingActionButton.extended(
@@ -292,6 +322,18 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+
+                // 7. Dark Overlay when summary is open
+                if (_showEarningsSummary)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _showEarningsSummary = false),
+                      child: Container(color: Colors.black.withOpacity(0.4)),
+                    ),
+                  ),
+
+                // 8. Earnings Summary Card (Final position in stack)
+                if (_showEarningsSummary) _buildEarningsSummaryCard(),
               ],
             ),
           );
@@ -337,6 +379,7 @@ class _HomePageState extends State<HomePage> {
               urlTemplate: urlTemplate,
               subdomains: const ['a', 'b', 'c', 'd'],
               userAgentPackageName: 'com.example.flutter_tcc',
+              retinaMode: RetinaMode.isHighDensity(context),
             ),
             // Overlay de Raio de Atuação (Ultra-Safe)
             CircleLayer(
@@ -509,17 +552,24 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildEarningsBadge(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleSummary,
+      onTap: () {
+        debugPrint(
+          'Earnings badge tapped! Current state: $_showEarningsSummary',
+        );
+        setState(() {
+          _showEarningsSummary = !_showEarningsSummary;
+        });
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -571,43 +621,330 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildEarningsSummaryCard() {
+    return Positioned(
+      top: 120,
+      left: 16,
+      right: 16,
+      child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
+        builder: (context, state) {
+          debugPrint('EarningsSummaryCard: Estado atual do Bloc: $state');
+
+          if (state is HomeJobsLoading) {
+            return Container(
+              height: 220,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (state is HomeJobsError) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.triangle_alert,
+                      color: Colors.red,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Ops! Algo deu errado',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          _homeJobsBloc.add(GetCompletedJobsTodayRequested()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Tentar novamente',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is! HomeJobsLoaded) {
+            return Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(child: Text('Aguardando dados...')),
+            );
+          }
+
+          final lastJob = state.summary.jobs.isNotEmpty
+              ? state.summary.jobs.last
+              : null;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top section with icons and pill
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Icon(
+                            LucideIcons.eye,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                          // Pill
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'R\$',
+                                  style: TextStyle(
+                                    color: Color(0xFF2EB086),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  NumberFormat.currency(
+                                    symbol: '',
+                                    locale: 'pt_BR',
+                                  ).format(state.summary.totalEarnings),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            LucideIcons.circle_question_mark,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Último serviço',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                // Details section
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      if (lastJob != null) ...[
+                        Text(
+                          'Hoje às ${DateFormat('HH:mm').format(DateTime.parse(lastJob['updatedAt']))}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          lastJob['description'] ?? 'Serviço Prestado',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ] else ...[
+                        const Text(
+                          'Nenhum serviço prestado hoje',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Fique online para começar a receber pedidos.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      const Text(
+                        'Ver todos os ganhos',
+                        style: TextStyle(
+                          color: Color(0xFF276EF1), // Uber Blue
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   // Removed _buildSummaryPanel and _buildServiceCard as they are now in ServiceSummarySheet
 
-  Widget _buildMainToggleButton() {
+  Widget _buildMinimalistToggle() {
     return GestureDetector(
       onTap: toggleOnline,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        height: 56,
-        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: isOnline ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.circular(32),
+          color: isOnline ? context.colors.themePrimary : Colors.grey[200],
+          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 12,
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isOnline ? LucideIcons.power : LucideIcons.power_off,
-              color: isOnline ? Colors.white : Colors.grey[300],
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              isOnline ? 'Online' : 'Offline',
-              style: TextStyle(
-                color: isOnline ? Colors.white : Colors.grey[300],
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+            if (isOnline) ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
+              const SizedBox(width: 10),
+              const Text(
+                'ONLINE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ] else ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'OFFLINE',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ],
         ),
       ),

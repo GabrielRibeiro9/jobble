@@ -17,10 +17,18 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final response = await dioClient.dio.get('/professional/jobs/completed-today');
       return EarningsSummaryModel.fromJson(response.data);
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.receiveTimeout || e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('O servidor demorou muito para responder. Verifique sua conexão ou tente novamente.');
+      }
+      
+      if (e.response?.statusCode == 502) {
+        throw Exception('O servidor está temporariamente indisponível. Estamos trabalhando para restaurar o serviço.');
+      }
+
       if (e.response != null && e.response?.data != null) {
-        final message = e.response?.data['message'];
-        if (message != null) {
-          throw Exception(message);
+        final data = e.response?.data;
+        if (data is Map && data.containsKey('message')) {
+          throw Exception(data['message']);
         }
       }
       rethrow;

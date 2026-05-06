@@ -19,7 +19,11 @@ class HomeJobsBloc extends Bloc<HomeJobsEvent, HomeJobsState> {
       final summary = await repository.getCompletedJobsToday();
       emit(HomeJobsLoaded(summary: summary));
     } catch (e) {
-      emit(HomeJobsError(message: e.toString()));
+      String message = e.toString();
+      if (message.startsWith('Exception: ')) {
+        message = message.replaceFirst('Exception: ', '');
+      }
+      emit(HomeJobsError(message: message));
     }
   }
 }
