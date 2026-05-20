@@ -144,7 +144,7 @@ class HomeDrawer extends StatelessWidget {
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: context.colors.borderLight.withOpacity(0.1),
+              color: context.colors.borderLight.withValues(alpha: 0.1),
             ),
           ),
           child: Row(

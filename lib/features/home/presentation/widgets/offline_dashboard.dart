@@ -11,7 +11,7 @@ class OfflineDashboard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      color: colors.background.withOpacity(isDark ? 0.95 : 0.9),
+      color: colors.background.withValues(alpha: isDark ? 0.95 : 0.9),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 80, 20, 100),
@@ -109,10 +109,10 @@ class OfflineDashboard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.border.withOpacity(0.3)),
+        border: Border.all(color: context.colors.border.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -125,7 +125,7 @@ class OfflineDashboard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 20),
@@ -162,7 +162,7 @@ class OfflineDashboard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.border.withOpacity(0.3)),
+        border: Border.all(color: context.colors.border.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +191,7 @@ class OfflineDashboard extends StatelessWidget {
           const SizedBox(height: 12),
           LinearProgressIndicator(
             value: 0.92,
-            backgroundColor: context.colors.border.withOpacity(0.3),
+            backgroundColor: context.colors.border.withValues(alpha: 0.3),
             valueColor: AlwaysStoppedAnimation<Color>(context.colors.success),
             minHeight: 8,
           ),
@@ -250,7 +250,7 @@ class OfflineDashboard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         border: isLast ? null : Border(
-          bottom: BorderSide(color: context.colors.border.withOpacity(0.2)),
+          bottom: BorderSide(color: context.colors.border.withValues(alpha: 0.2)),
         ),
       ),
       child: Row(

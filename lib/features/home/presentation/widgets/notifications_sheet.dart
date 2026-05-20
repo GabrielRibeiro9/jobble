@@ -39,7 +39,7 @@ class NotificationsSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -58,7 +58,7 @@ class NotificationsSheet extends StatelessWidget {
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomPadding),
                     itemCount: notifications.length,
                     separatorBuilder: (context, index) =>
-                        Divider(color: colors.border.withOpacity(0.3), height: 1),
+                        Divider(color: colors.border.withValues(alpha: 0.3), height: 1),
                     itemBuilder: (context, index) {
                       return _buildNotificationCard(context, notifications[index]);
                     },
@@ -75,7 +75,7 @@ class NotificationsSheet extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: context.colors.textSecondary.withOpacity(0.3),
+        color: context.colors.textSecondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -121,7 +121,7 @@ class NotificationsSheet extends StatelessWidget {
           Icon(
             LucideIcons.bell_off,
             size: 48,
-            color: context.colors.textSecondary.withOpacity(0.5),
+            color: context.colors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -147,7 +147,7 @@ class NotificationsSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: item.iconColor.withOpacity(0.1),
+              color: item.iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(item.icon, color: item.iconColor, size: 20),

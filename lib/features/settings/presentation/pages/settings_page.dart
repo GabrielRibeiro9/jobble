@@ -46,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Divider(
             height: 1,
             thickness: 1,
-            color: context.colors.border.withOpacity(0.5),
+            color: context.colors.border.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -301,7 +301,7 @@ class _SettingsPageState extends State<SettingsPage> {
               activeTrackColor: context.colors.themePrimary,
               inactiveTrackColor: context.colors.border,
               thumbColor: context.colors.onPrimary,
-              overlayColor: context.colors.themePrimary.withOpacity(0.1),
+              overlayColor: context.colors.themePrimary.withValues(alpha: 0.1),
               trackHeight: 3,
             ),
             child: Slider(

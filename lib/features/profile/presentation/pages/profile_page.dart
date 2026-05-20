@@ -49,7 +49,7 @@ class _ProfilePageState extends State<ProfilePage>
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: context.colors.surface.withOpacity(0.8),
+                    color: context.colors.surface.withValues(alpha: 0.8),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -65,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage>
                   icon: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: context.colors.surface.withOpacity(0.8),
+                      color: context.colors.surface.withValues(alpha: 0.8),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -281,7 +281,7 @@ class _ProfilePageState extends State<ProfilePage>
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            context.colors.background.withOpacity(0.8),
+                            context.colors.background.withValues(alpha: 0.8),
                           ],
                         ),
                       ),
@@ -349,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: context.colors.textSecondary.withOpacity(0.3),
+                        color: context.colors.textSecondary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -638,21 +638,21 @@ class _ProfilePageState extends State<ProfilePage>
           Icons.location_on,
           'Região de Atuação',
           _userRegion,
-          context.colors.textPrimary.withOpacity(0.1),
+          context.colors.textPrimary.withValues(alpha: 0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
           Icons.access_time,
           'Membro desde',
           'Janeiro 2024',
-          context.colors.textPrimary.withOpacity(0.1),
+          context.colors.textPrimary.withValues(alpha: 0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
           Icons.verified,
           'Verificação',
           'Documentos verificados ✓',
-          context.colors.textPrimary.withOpacity(0.1),
+          context.colors.textPrimary.withValues(alpha: 0.1),
         ),
         const SizedBox(height: 12),
         _buildInfoCard(
@@ -661,7 +661,7 @@ class _ProfilePageState extends State<ProfilePage>
           'Eletricista com mais de 8 anos de experiência em '
               'instalações residenciais e comerciais. Especialista em '
               'iluminação LED, quadros elétricos e manutenção preventiva.',
-          context.colors.textPrimary.withOpacity(0.1),
+          context.colors.textPrimary.withValues(alpha: 0.1),
         ),
         const SizedBox(height: 32),
       ],
@@ -756,7 +756,7 @@ class _ProfilePageState extends State<ProfilePage>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -811,7 +811,7 @@ class _ProfilePageState extends State<ProfilePage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: context.colors.textSecondary.withOpacity(0.3),
+                    color: context.colors.textSecondary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -828,7 +828,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.camera_alt,
                   'Alterar foto de perfil',
-                  context.colors.textPrimary.withOpacity(0.1),
+                  context.colors.textPrimary.withValues(alpha: 0.1),
                   () {
                     Navigator.pop(context);
                     _showChangePhotoDialog();
@@ -837,7 +837,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.person,
                   'Editar nome e especialidade',
-                  context.colors.textPrimary.withOpacity(0.1),
+                  context.colors.textPrimary.withValues(alpha: 0.1),
                   () {
                     Navigator.pop(context);
                     _showEditNameDialog();
@@ -846,7 +846,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.location_on,
                   'Alterar região de atuação',
-                  context.colors.textPrimary.withOpacity(0.1),
+                  context.colors.textPrimary.withValues(alpha: 0.1),
                   () {
                     Navigator.pop(context);
                     _showEditRegionDialog();
@@ -855,7 +855,7 @@ class _ProfilePageState extends State<ProfilePage>
                 _buildSettingsItem(
                   Icons.add_photo_alternate,
                   'Adicionar ao portfólio',
-                  context.colors.textPrimary.withOpacity(0.1),
+                  context.colors.textPrimary.withValues(alpha: 0.1),
                   () {
                     Navigator.pop(context);
                     _showAddPortfolioSnackbar();

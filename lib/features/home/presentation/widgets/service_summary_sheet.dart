@@ -37,7 +37,7 @@ class ServiceSummarySheet extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomPadding),
                 itemCount: services.length,
                 separatorBuilder: (context, index) =>
-                    Divider(color: colors.border.withOpacity(0.3), height: 1),
+                    Divider(color: colors.border.withValues(alpha: 0.3), height: 1),
                 itemBuilder: (context, index) {
                   return _buildServiceCard(context, services[index]);
                 },
@@ -55,7 +55,7 @@ class ServiceSummarySheet extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: colors.border.withOpacity(0.3)),
+          bottom: BorderSide(color: colors.border.withValues(alpha: 0.3)),
         ),
       ),
       child: Stack(

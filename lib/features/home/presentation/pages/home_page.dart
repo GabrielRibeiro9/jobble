@@ -13,7 +13,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/home_drawer.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/service_summary_sheet.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
@@ -22,6 +21,7 @@ import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_state.dart
 import 'package:flutter_tcc/features/home/presentation/pages/settings_center_page.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,10 +30,11 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool isOnline = false;
   bool showRequest = false;
   bool _showEarningsSummary = false;
+  bool _isOfflineByInactivity = false;
   late HomeJobsBloc _homeJobsBloc;
 
   // Mock data — Notificações
@@ -101,9 +102,44 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _homeJobsBloc = sl<HomeJobsBloc>()..add(GetCompletedJobsTodayRequested());
     _initLocation();
     context.read<AuthBloc>().add(UserRequested());
+    _checkInactivity();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (isOnline) {
+        _saveOnlineTime();
+      }
+    }
+  }
+
+  Future<void> _checkInactivity() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastOnlineTime = prefs.getInt('lastOnlineTime');
+    final wasOnline = prefs.getBool('wasOnline') ?? false;
+
+    if (wasOnline && lastOnlineTime != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final fourHoursInMillis = 4 * 60 * 60 * 1000;
+
+      if ((now - lastOnlineTime) > fourHoursInMillis) {
+        setState(() {
+          _isOfflineByInactivity = true;
+          isOnline = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveOnlineTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastOnlineTime', DateTime.now().millisecondsSinceEpoch);
+    await prefs.setBool('wasOnline', true);
   }
 
   void _fetchJobsToday(BuildContext context) {
@@ -112,6 +148,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _homeJobsBloc.close();
     super.dispose();
   }
@@ -188,13 +225,26 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void toggleOnline() {
+  void toggleOnline() async {
     setState(() {
       isOnline = !isOnline;
-      if (!isOnline) {
+      if (isOnline) {
+        _isOfflineByInactivity = false;
+      } else {
         showRequest = false;
       }
     });
+    if (isOnline) {
+      await _saveOnlineTime();
+    }
+  }
+
+  void _goOnlineFromInactivity() async {
+    setState(() {
+      isOnline = true;
+      _isOfflineByInactivity = false;
+    });
+    await _saveOnlineTime();
   }
 
   void simulateIncomingRequest() {
@@ -273,23 +323,37 @@ class _HomePageState extends State<HomePage> {
                 // 4. Map Overlay (Glassy when offline)
                 if (!isOnline)
                   Positioned.fill(
-                    child: ClipRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                        child: Container(color: Colors.white.withOpacity(0.25)),
+                    child: GestureDetector(
+                      onTap: _goOnlineFromInactivity,
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                          child: Container(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            child: _isOfflineByInactivity
+                                ? Builder(
+                                    builder: (context) {
+                                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                                      return Center(
+                                        child: Text(
+                                          'Aperte para entrar online',
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white : Colors.black87,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : null,
+                          ),
+                        ),
                       ),
                     ),
                   ),
 
-                // 5. Minimalist Bottom Toggle
-                if (!showRequest)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 40),
-                      child: _buildMinimalistToggle(),
-                    ),
-                  ),
+                
 
                 // 7. Incoming Request Overlay
                 if (showRequest)
@@ -328,7 +392,7 @@ class _HomePageState extends State<HomePage> {
                   Positioned.fill(
                     child: GestureDetector(
                       onTap: () => setState(() => _showEarningsSummary = false),
-                      child: Container(color: Colors.black.withOpacity(0.4)),
+                      child: Container(color: Colors.black.withValues(alpha: 0.4)),
                     ),
                   ),
 
@@ -388,8 +452,8 @@ class _HomePageState extends State<HomePage> {
                   point: pos,
                   radius: state.raioAtuacao * 1000,
                   useRadiusInMeter: true,
-                  color: Colors.blue.withOpacity(0.1),
-                  borderColor: Colors.blue.withOpacity(0.3),
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderColor: Colors.blue.withValues(alpha: 0.3),
                   borderStrokeWidth: 2,
                 ),
               ],
@@ -410,8 +474,8 @@ class _HomePageState extends State<HomePage> {
                         height: 28,
                         decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white.withOpacity(0.2)
-                              : context.colors.themePrimary.withOpacity(0.15),
+                              ? Colors.white.withValues(alpha: 0.2)
+                              : context.colors.themePrimary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
@@ -484,7 +548,7 @@ class _HomePageState extends State<HomePage> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -510,7 +574,7 @@ class _HomePageState extends State<HomePage> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -567,7 +631,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -638,7 +702,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 15,
                     spreadRadius: 2,
                   ),
@@ -656,7 +720,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -668,7 +732,7 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -743,7 +807,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
@@ -897,7 +961,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -960,7 +1024,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -982,7 +1046,7 @@ class _HomePageState extends State<HomePage> {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
@@ -1001,7 +1065,7 @@ class _HomePageState extends State<HomePage> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -1076,7 +1140,7 @@ class _HomePageState extends State<HomePage> {
           Divider(
             height: 1,
             thickness: 1,
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
           ),
 
           const SizedBox(height: 16),
