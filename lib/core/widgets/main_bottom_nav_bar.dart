@@ -64,9 +64,7 @@ class MainBottomNavBar extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: isActive
-              ? Colors.white
-              : Colors.white.withValues(alpha: 0.5),
+          color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5),
           size: 24,
         ),
       ),
@@ -79,7 +77,7 @@ class MainBottomNavBar extends StatelessWidget {
       onTap: () => onItemSelected(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: isActive
               ? Colors.white.withValues(alpha: 0.2)
@@ -99,8 +97,8 @@ class MainBottomNavBar extends StatelessWidget {
               return ClipOval(
                 child: Image.network(
                   avatarUrl,
-                  width: 24,
-                  height: 24,
+                  width: 32,
+                  height: 32,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       _buildFallbackAvatar(fallbackName),
@@ -117,8 +115,8 @@ class MainBottomNavBar extends StatelessWidget {
   Widget _buildFallbackAvatar(String name) {
     if (name.isNotEmpty) {
       return Container(
-        width: 24,
-        height: 24,
+        width: 32,
+        height: 32,
         decoration: const BoxDecoration(
           color: Colors.white24,
           shape: BoxShape.circle,
@@ -135,10 +133,6 @@ class MainBottomNavBar extends StatelessWidget {
         ),
       );
     }
-    return const Icon(
-      Icons.person,
-      size: 24,
-      color: Colors.white54,
-    );
+    return const Icon(Icons.person, size: 24, color: Colors.white54);
   }
 }
