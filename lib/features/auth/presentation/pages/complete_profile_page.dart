@@ -6,7 +6,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_profile.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
 
 class CompleteProfilePage extends StatefulWidget {
   const CompleteProfilePage({super.key});
@@ -41,7 +41,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
       listener: (context, state) {
         if (state is AuthOnboardingSuccess) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()),
+            MaterialPageRoute(builder: (context) => const MainShellPage()),
             (route) => false,
           );
         } else if (state is AuthFailure) {

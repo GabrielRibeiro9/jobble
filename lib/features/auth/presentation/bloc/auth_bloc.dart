@@ -7,6 +7,7 @@ import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.d
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/get_me_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/update_professional_profile_usecase.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
 
@@ -17,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CompleteOnboardingUseCase completeOnboardingUseCase;
   final ResendVerificationCodeUseCase resendVerificationCodeUseCase;
   final GetMeUseCase getMeUseCase;
+  final UpdateProfessionalProfileUseCase updateProfessionalProfileUseCase;
   final TokenService tokenService;
 
   AuthBloc({
@@ -26,14 +28,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.completeOnboardingUseCase,
     required this.resendVerificationCodeUseCase,
     required this.getMeUseCase,
+    required this.updateProfessionalProfileUseCase,
     required this.tokenService,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignupSubmitted>(_onSignupSubmitted);
     on<EmailVerificationSubmitted>(_onEmailVerificationSubmitted);
     on<CompleteOnboardingSubmitted>(_onCompleteOnboardingSubmitted);
+    on<UpdateProfessionalProfileSubmitted>(_onUpdateProfessionalProfileSubmitted);
     on<ResendVerificationEmailRequested>(_onResendVerificationEmailRequested);
     on<UserRequested>(_onUserRequested);
+    on<LogoutRequested>(_onLogoutRequested);
+    on<ConnectionErrorLogoutRequested>(_onConnectionErrorLogoutRequested);
+  }
+
+  Future<void> _onLogoutRequested(
+    LogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    await tokenService.deleteToken();
+    emit(AuthInitial());
+  }
+
+  Future<void> _onConnectionErrorLogoutRequested(
+    ConnectionErrorLogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    await tokenService.deleteToken();
+    emit(const AuthFailure(message: 'Conexão perdida. Faça login novamente.'));
   }
 
   Future<void> _onResendVerificationEmailRequested(
@@ -111,6 +133,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onUpdateProfessionalProfileSubmitted(
+    UpdateProfessionalProfileSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await updateProfessionalProfileUseCase.execute(event.tags, event.bio);
+      final user = await getMeUseCase.execute();
+      final currentState = state;
+      if (currentState is AuthSuccess) {
+        emit(AuthSuccess(accessToken: currentState.accessToken, user: user));
+      }
+      emit(AuthOnboardingSuccess());
+    } catch (e) {
+      final message = e.toString().replaceAll('Exception: ', '');
+      emit(AuthFailure(message: message));
+    }
+  }
+
   Future<void> _onUserRequested(
     UserRequested event,
     Emitter<AuthState> emit,
@@ -129,8 +170,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final user = await getMeUseCase.execute();
         emit(AuthSuccess(accessToken: token, user: user));
       } catch (e) {
-        // If it fails, we keep the state or handle accordingly
+        await tokenService.deleteToken();
+        emit(AuthInitial());
       }
+    } else {
+      await tokenService.deleteToken();
+      emit(AuthInitial());
     }
   }
 }

@@ -12,6 +12,7 @@ abstract class AuthRemoteDataSource {
   Future<void> resendVerificationCode(String email);
   Future<void> completeOnboarding(String name, String cpf);
   Future<UserModel> getMe();
+  Future<void> updateProfessionalProfile(String tags, String bio);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -122,6 +123,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await dioClient.dio.get('/users/profile');
       return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final message = e.response?.data['message'];
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateProfessionalProfile(String tags, String bio) async {
+    try {
+      await dioClient.dio.patch(
+        '/professional/profile',
+        data: {'tags': tags, 'bio': bio},
+      );
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         final message = e.response?.data['message'];

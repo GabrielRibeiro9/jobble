@@ -7,7 +7,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/verify_otp_page.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 
@@ -57,7 +57,7 @@ class _SignupFormState extends State<SignupForm> {
           } else if (!completed) {
             nextStep = const CompleteProfilePage();
           } else {
-            nextStep = const HomePage();
+            nextStep = const MainShellPage();
           }
 
           Navigator.of(context).pushAndRemoveUntil(

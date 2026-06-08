@@ -5,14 +5,13 @@ class DioClient {
   late final Dio _dio;
   final TokenService tokenService;
 
-  DioClient({required this.tokenService}) {
-    const String baseUrl = 'https://jobble-api.up.railway.app';
-    // const String baseUrl = 'http://[IP_ADDRESS]';
+  static const String baseUrl = 'http://10.0.2.2:3333';
 
+  DioClient({required this.tokenService}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 5),
+        connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 15),
         headers: {
           'Content-Type': 'application/json',
@@ -29,6 +28,15 @@ class DioClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
+        },
+        onError: (error, handler) async {
+          if (error.type == DioExceptionType.connectionTimeout ||
+              error.type == DioExceptionType.receiveTimeout ||
+              error.type == DioExceptionType.sendTimeout ||
+              error.type == DioExceptionType.connectionError) {
+            await tokenService.deleteToken();
+          }
+          return handler.next(error);
         },
       ),
     );

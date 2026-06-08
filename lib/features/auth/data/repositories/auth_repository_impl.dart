@@ -65,4 +65,9 @@ class AuthRepositoryImpl implements AuthRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> updateProfessionalProfile(String tags, String bio) async {
+    await remoteDataSource.updateProfessionalProfile(tags, bio);
+  }
 }

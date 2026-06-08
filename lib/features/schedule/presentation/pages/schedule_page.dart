@@ -134,45 +134,13 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget build(BuildContext context) {
     final dailyAppointments = _allAppointments.where((app) => _isSameDay(app.date, _selectedDate)).toList();
 
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      appBar: AppBar(
-        backgroundColor: context.colors.surface,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: context.colors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
+    return Column(
+      children: [
+        _buildWeekTracker(),
+        Expanded(
+          child: _buildAppointmentsList(dailyAppointments),
         ),
-        title: Text(
-          'Minha Agenda',
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: context.colors.border.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          _buildWeekTracker(),
-          Expanded(
-            child: _buildAppointmentsList(dailyAppointments),
-          ),
-        ],
-      ),
+      ],
     );
   }
 

@@ -24,11 +24,12 @@ class AuthSuccess extends AuthState {
 
 class AuthFailure extends AuthState {
   final String message;
+  final bool isConnectionError;
 
-  const AuthFailure({required this.message});
+  const AuthFailure({required this.message, this.isConnectionError = false});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, isConnectionError];
 }
 
 class AuthSignupStep1Success extends AuthState {}

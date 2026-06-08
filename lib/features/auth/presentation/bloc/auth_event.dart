@@ -53,6 +53,17 @@ class CompleteOnboardingSubmitted extends AuthEvent {
   @override
   List<Object?> get props => [name, cpf];
 }
+
+class UpdateProfessionalProfileSubmitted extends AuthEvent {
+  final String tags;
+  final String bio;
+
+  const UpdateProfessionalProfileSubmitted({required this.tags, required this.bio});
+
+  @override
+  List<Object> get props => [tags, bio];
+}
+
 class ResendVerificationEmailRequested extends AuthEvent {
   final String email;
 
@@ -63,3 +74,7 @@ class ResendVerificationEmailRequested extends AuthEvent {
 }
 
 class UserRequested extends AuthEvent {}
+
+class LogoutRequested extends AuthEvent {}
+
+class ConnectionErrorLogoutRequested extends AuthEvent {}

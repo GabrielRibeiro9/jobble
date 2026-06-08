@@ -5,13 +5,8 @@ class ServicesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus Serviços'),
-      ),
-      body: const Center(
-        child: Text('Página de Serviços em desenvolvimento'),
-      ),
+    return const Center(
+      child: Text('Página de Serviços em desenvolvimento'),
     );
   }
 }

@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 
 class SignupStepEmail extends StatefulWidget {
+  final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final VoidCallback onContinue;
+  final bool isLoading;
 
   const SignupStepEmail({
     super.key,
+    required this.nameController,
     required this.emailController,
     required this.passwordController,
     required this.confirmPasswordController,
     required this.onContinue,
+    this.isLoading = false,
   });
 
   @override
@@ -34,22 +38,34 @@ class _SignupStepEmailState extends State<SignupStepEmail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Qual é o seu e-mail?',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'É importante usar um e-mail válido para criar sua conta',
+                  'Nome',
                   style: TextStyle(
                     color: context.colors.textSecondary,
-                    fontSize: 14,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: widget.nameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: TextStyle(color: context.colors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Seu nome',
+                    filled: true,
+                    fillColor: context.colors.surface,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.colors.borderLight),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.colors.borderLight),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Text(
                   'E-mail',
                   style: TextStyle(
@@ -159,22 +175,32 @@ class _SignupStepEmailState extends State<SignupStepEmail> {
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-            onPressed: widget.onContinue,
+            onPressed: widget.isLoading ? null : widget.onContinue,
             style: ElevatedButton.styleFrom(
               backgroundColor: context.colors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
               elevation: 0,
+              disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
             ),
-            child: Text(
-              'Continuar',
-              style: TextStyle(
-                color: context.colors.onPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    'Continuar',
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ],

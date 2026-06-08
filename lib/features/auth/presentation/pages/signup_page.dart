@@ -10,7 +10,7 @@ import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_email
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_otp.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_profile.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 import 'package:flutter_tcc/features/auth/presentation/pages/verify_otp_page.dart';
@@ -140,7 +140,7 @@ class _SignupPageState extends State<SignupPage> {
           } else if (!completed) {
             nextStep = const CompleteProfilePage();
           } else {
-            nextStep = const HomePage();
+            nextStep = const MainShellPage();
           }
 
           Navigator.of(context).pushAndRemoveUntil(
@@ -149,7 +149,7 @@ class _SignupPageState extends State<SignupPage> {
           );
         } else if (state is AuthOnboardingSuccess) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()),
+            MaterialPageRoute(builder: (context) => const MainShellPage()),
             (route) => false,
           );
         } else if (state is AuthFailure) {
@@ -204,6 +204,7 @@ class _SignupPageState extends State<SignupPage> {
                     Stack(
                       children: [
                         SignupStepEmail(
+                          nameController: _nameController,
                           emailController: _emailController,
                           passwordController: _passwordController,
                           confirmPasswordController: _confirmPasswordController,

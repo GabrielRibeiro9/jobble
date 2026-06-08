@@ -18,7 +18,6 @@ import 'package:flutter_tcc/features/home/presentation/widgets/notifications_she
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_event.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_state.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/settings_center_page.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -105,13 +104,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _homeJobsBloc = sl<HomeJobsBloc>()..add(GetCompletedJobsTodayRequested());
     _initLocation();
-    context.read<AuthBloc>().add(UserRequested());
     _checkInactivity();
+    // Defer UserRequested to avoid race with login navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthBloc>().add(UserRequested());
+      }
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       if (isOnline) {
         _saveOnlineTime();
       }
@@ -266,140 +271,109 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       value: _homeJobsBloc,
       child: Builder(
         builder: (context) {
-          return Scaffold(
-            backgroundColor: context.colors.background,
-            body: Stack(
-              children: [
-                // 2. Map (Real OpenStreetMap)
-                _buildMap(),
+          return Stack(
+            children: [
+              // 2. Map (Real OpenStreetMap)
+              _buildMap(),
 
-                // 3. Top Action Bar
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: SizedBox(
-                      height: 50,
-                      child: Stack(
-                        children: [
-                          // Menu Button (Left)
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Builder(
-                              builder: (scaffoldContext) => _buildIconButton(
-                                LucideIcons.settings,
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const SettingsCenterPage(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Earnings Pill (Center)
-                          Align(
-                            alignment: Alignment.center,
-                            child: _buildEarningsBadge(context),
-                          ),
-                          // Inbox Button (Right)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: _buildIconButton(
-                              LucideIcons.inbox,
-                              onPressed: () {
-                                // Navigate to inbox or show notifications
-                              },
-                            ),
-                          ),
-                        ],
+              // 3. Top Earnings Badge
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: SizedBox(
+                    height: 50,
+                    child: Center(child: _buildEarningsBadge(context)),
+                  ),
+                ),
+              ),
+
+              // 4. Map Overlay (Glassy when offline)
+              if (!isOnline)
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: _goOnlineFromInactivity,
+                    child: ClipRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        child: Container(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          child: _isOfflineByInactivity
+                              ? Builder(
+                                  builder: (context) {
+                                    final isDark =
+                                        Theme.of(context).brightness ==
+                                        Brightness.dark;
+                                    return Center(
+                                      child: Text(
+                                        'Aperte para entrar online',
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : null,
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                // 4. Map Overlay (Glassy when offline)
-                if (!isOnline)
-                  Positioned.fill(
+              // 7. Incoming Request Overlay
+              if (showRequest)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _buildIncomingRequestCard(),
+                ),
+
+              // 6. Simulation button (discreet)
+              if (isOnline && !showRequest)
+                Positioned(
+                  top: 200,
+                  right: 16,
+                  child: Opacity(
+                    opacity: 0.35,
                     child: GestureDetector(
-                      onTap: _goOnlineFromInactivity,
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                          child: Container(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            child: _isOfflineByInactivity
-                                ? Builder(
-                                    builder: (context) {
-                                      final isDark = Theme.of(context).brightness == Brightness.dark;
-                                      return Center(
-                                        child: Text(
-                                          'Aperte para entrar online',
-                                          style: TextStyle(
-                                            color: isDark ? Colors.white : Colors.black87,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : null,
-                          ),
+                      onTap: simulateIncomingRequest,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[600],
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.bug_report,
+                          size: 16,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                
-
-                // 7. Incoming Request Overlay
-                if (showRequest)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _buildIncomingRequestCard(),
-                  ),
-
-                // 6. Simulation button above card
-                if (isOnline && !showRequest)
-                  Positioned(
-                    top: 200, // Moved down to avoid overlap
-                    right: 32,
-                    child: Center(
-                      child: FloatingActionButton.extended(
-                        onPressed: simulateIncomingRequest,
-                        backgroundColor: context.colors.themePrimary,
-                        elevation: 0,
-                        icon: Icon(
-                          Icons.notifications_active,
-                          color: context.colors.onPrimary,
-                        ),
-                        label: Text(
-                          'Simular Pedido',
-                          style: TextStyle(
-                            color: context.colors.onPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+              // 7. Dark Overlay when summary is open
+              if (_showEarningsSummary)
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _showEarningsSummary = false),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.4),
                     ),
                   ),
+                ),
 
-                // 7. Dark Overlay when summary is open
-                if (_showEarningsSummary)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _showEarningsSummary = false),
-                      child: Container(color: Colors.black.withValues(alpha: 0.4)),
-                    ),
-                  ),
-
-                // 8. Earnings Summary Card (Final position in stack)
-                if (_showEarningsSummary) _buildEarningsSummaryCard(),
-              ],
-            ),
+              // 8. Earnings Summary Card
+              if (_showEarningsSummary) _buildEarningsSummaryCard(),
+            ],
           );
         },
       ),
@@ -475,7 +449,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         decoration: BoxDecoration(
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.2)
-                              : context.colors.themePrimary.withValues(alpha: 0.15),
+                              : context.colors.themePrimary.withValues(
+                                  alpha: 0.15,
+                                ),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
@@ -629,13 +605,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
         ),
         child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
           builder: (context, state) {
@@ -687,7 +656,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget _buildEarningsSummaryCard() {
     return Positioned(
-      top: 120,
+      top: 60,
       left: 16,
       right: 16,
       child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
@@ -816,76 +785,68 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Top section with icons and pill
+                // Top section with close button (left) and value (center)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                  child: Column(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Stack(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Icon(
-                            LucideIcons.eye,
+                      // Close button (left)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _showEarningsSummary = false),
+                          child: const Icon(
+                            LucideIcons.x,
                             size: 24,
-                            color: Colors.black,
+                            color: Colors.black54,
                           ),
-                          // Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'R\$',
-                                  style: TextStyle(
-                                    color: Color(0xFF2EB086),
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  NumberFormat.currency(
-                                    symbol: '',
-                                    locale: 'pt_BR',
-                                  ).format(state.summary.totalEarnings),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(
-                            LucideIcons.circle_question_mark,
-                            size: 24,
-                            color: Colors.black,
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Último serviço',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                      // Earnings display (centered)
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'R\$',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                NumberFormat.currency(
+                                  symbol: '',
+                                  locale: 'pt_BR',
+                                ).format(state.summary.totalEarnings),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 8),
                 const Divider(height: 1, color: Color(0xFFE5E5E5)),
-                // Details section
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
@@ -932,7 +893,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       const Text(
                         'Ver todos os ganhos',
                         style: TextStyle(
-                          color: Color(0xFF276EF1), // Uber Blue
+                          color: Color(0xFF276EF1),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1017,7 +978,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget _buildIncomingRequestCard() {
     return Container(
-      margin: const EdgeInsets.all(16).copyWith(bottom: 40),
+      margin: const EdgeInsets.all(16).copyWith(bottom: 100),
       width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF1C1C1E),

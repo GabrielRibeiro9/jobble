@@ -12,58 +12,39 @@ class SettingsCenterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      appBar: AppBar(
-        backgroundColor: context.colors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.colors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(LucideIcons.bell, color: context.colors.textPrimary),
-            onPressed: () {},
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          _buildProfileSection(context),
+          const SizedBox(height: 32),
+          _buildActionGrid(context),
+          const SizedBox(height: 40),
+          _buildSectionHeader(context, 'Central de Segurança'),
+          const SizedBox(height: 16),
+          _buildSecurityCards(context),
+          const SizedBox(height: 40),
+          _buildSectionHeader(context, 'Benefícios'),
+          const SizedBox(height: 40),
+          _buildBottomLink(
+            context,
+            icon: LucideIcons.circle_question_mark,
+            title: 'Central de ajuda',
           ),
+          const SizedBox(height: 12),
+          _buildBottomLink(
+            context,
+            icon: LucideIcons.log_out,
+            title: 'Sair do App',
+            subtitle: 'Versão 1.0.0',
+            onTap: () {
+              // Handle logout
+            },
+          ),
+          const SizedBox(height: 40),
         ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            _buildProfileSection(context),
-            const SizedBox(height: 32),
-            _buildActionGrid(context),
-            const SizedBox(height: 40),
-            _buildSectionHeader(context, 'Central de Segurança'),
-            const SizedBox(height: 16),
-            _buildSecurityCards(context),
-            const SizedBox(height: 40),
-            _buildSectionHeader(context, 'Benefícios'),
-            const SizedBox(height: 16),
-            _buildBenefitsCards(context),
-            const SizedBox(height: 40),
-            _buildBottomLink(
-              context,
-              icon: LucideIcons.circle_question_mark,
-              title: 'Central de ajuda',
-            ),
-            const SizedBox(height: 12),
-            _buildBottomLink(
-              context,
-              icon: LucideIcons.log_out,
-              title: 'Sair do App',
-              subtitle: 'Versão 1.0.0',
-              onTap: () {
-                // Handle logout
-              },
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
       ),
     );
   }
@@ -234,198 +215,94 @@ class SettingsCenterPage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildBenefitsCards(BuildContext context) {
-    return Row(
+Widget _buildInfoCard(
+  BuildContext context,
+  String title,
+  String subtitle,
+  IconData? icon,
+) {
+  return Container(
+    height: 140,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: context.colors.surfaceLight,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Container(
-            height: 160,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceLight,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Evoluir perfil',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ClipOval(
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  'Seja Premium',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Mais benefícios',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
+        Text(
+          title,
+          style: TextStyle(
+            color: context.colors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            height: 160,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceLight,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pontos Loop',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '2',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  'Acumule mais pontos',
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Ative o débito automático',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData? icon,
-  ) {
-    return Container(
-      height: 140,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 13,
-                    height: 1.2,
-                  ),
+        const Spacer(),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                subtitle,
+                style: TextStyle(
+                  color: context.colors.textSecondary,
+                  fontSize: 13,
+                  height: 1.2,
                 ),
               ),
-              if (icon != null)
-                Icon(icon, color: context.colors.textPrimary, size: 20),
-            ],
+            ),
+            if (icon != null)
+              Icon(icon, color: context.colors.textPrimary, size: 20),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildBottomLink(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  String? subtitle,
+  VoidCallback? onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: context.colors.textPrimary, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: context.colors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBottomLink(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, color: context.colors.textPrimary, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: context.colors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: context.colors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }

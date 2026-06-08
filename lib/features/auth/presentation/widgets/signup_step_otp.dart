@@ -7,11 +7,13 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 class SignupStepOtp extends StatefulWidget {
   final String email;
   final Function(String) onContinue;
+  final bool isLoading;
 
   const SignupStepOtp({
     super.key,
     required this.email,
     required this.onContinue,
+    this.isLoading = false,
   });
 
   @override
@@ -81,36 +83,47 @@ class _SignupStepOtpState extends State<SignupStepOtp> {
         ),
         const SizedBox(height: 32),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(6, (index) {
-            return SizedBox(
-              width: 50,
-              height: 50,
-              child: TextField(
-                controller: _controllers[index],
-                focusNode: _focusNodes[index],
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                maxLength: 1,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: context.colors.textPrimary,
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.colors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: context.colors.borderLight),
+                      ),
+                    ),
+                    TextField(
+                      controller: _controllers[index],
+                      focusNode: _focusNodes[index],
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      maxLength: 1,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: context.colors.textPrimary,
+                      ),
+                      decoration: const InputDecoration(
+                        counterText: '',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        fillColor: Colors.transparent,
+                        filled: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (value) => _onOtpChanged(index, value),
+                    ),
+                  ],
                 ),
-                decoration: InputDecoration(
-                  counterText: '',
-                  filled: true,
-                  fillColor: context.colors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.colors.borderLight),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.colors.borderLight),
-                  ),
-                ),
-                onChanged: (value) => _onOtpChanged(index, value),
               ),
             );
           }),
@@ -143,27 +156,39 @@ class _SignupStepOtpState extends State<SignupStepOtp> {
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-            onPressed: () {
-              final otp = _controllers.map((c) => c.text).join();
-              if (otp.length == 6) {
-                widget.onContinue(otp);
-              }
-            },
+            onPressed: widget.isLoading
+                ? null
+                : () {
+                    final otp = _controllers.map((c) => c.text).join();
+                    if (otp.length == 6) {
+                      widget.onContinue(otp);
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: context.colors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
               elevation: 0,
+              disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
             ),
-            child: Text(
-              'Continuar',
-              style: TextStyle(
-                color: context.colors.onPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    'Continuar',
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ],

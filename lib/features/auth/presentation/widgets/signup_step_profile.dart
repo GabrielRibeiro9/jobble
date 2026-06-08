@@ -5,12 +5,14 @@ class SignupStepProfile extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController cpfController;
   final VoidCallback onFinish;
+  final bool isLoading;
 
   const SignupStepProfile({
     super.key,
     required this.nameController,
     required this.cpfController,
     required this.onFinish,
+    this.isLoading = false,
   });
 
   @override
@@ -126,22 +128,32 @@ class SignupStepProfile extends StatelessWidget {
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-            onPressed: onFinish,
+            onPressed: isLoading ? null : onFinish,
             style: ElevatedButton.styleFrom(
               backgroundColor: context.colors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
               elevation: 0,
+              disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
             ),
-            child: Text(
-              'Finalizar',
-              style: TextStyle(
-                color: context.colors.onPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    'Finalizar',
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ],

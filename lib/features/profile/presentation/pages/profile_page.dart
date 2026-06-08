@@ -35,31 +35,14 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.background,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            // App Bar com header do perfil
-            SliverAppBar(
-              expandedHeight: 300,
-              pinned: true,
-              backgroundColor: context.colors.surface,
-              leading: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: context.colors.surface.withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: context.colors.textPrimary,
-                    size: 20,
-                  ),
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          // App Bar com header do perfil
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: context.colors.surface,
               actions: [
                 IconButton(
                   icon: Container(
@@ -85,24 +68,7 @@ class _ProfilePageState extends State<ProfilePage>
             // Tab Bar
             SliverPersistentHeader(
               pinned: true,
-              delegate: _TabBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  dividerColor: Colors.transparent,
-                  indicatorColor: context.colors.textPrimary,
-                  indicatorWeight: 2,
-                  labelColor: context.colors.textPrimary,
-                  unselectedLabelColor: context.colors.textSecondary,
-                  tabs: const [
-                    Tab(
-                      icon: Icon(LucideIcons.layout_dashboard),
-                      text: 'Portfólio',
-                    ),
-                    Tab(icon: Icon(LucideIcons.star), text: 'Avaliações'),
-                    Tab(icon: Icon(LucideIcons.info), text: 'Sobre'),
-                  ],
-                ),
-              ),
+              delegate: _TabBarDelegate(_buildBadgeTabs()),
             ),
           ];
         },
@@ -114,7 +80,77 @@ class _ProfilePageState extends State<ProfilePage>
             _buildAboutTab(),
           ],
         ),
+    );
+  }
+
+  // ─── BADGE TABS ─────────────────────────────────────────────────
+
+  Widget _buildBadgeTabs() {
+    final colors = context.colors;
+    final tabs = [
+      (LucideIcons.layout_dashboard, 'Portfólio'),
+      (LucideIcons.star, 'Avaliações'),
+      (LucideIcons.info, 'Sobre'),
+    ];
+
+    return SizedBox(
+      height: kToolbarHeight,
+      child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(tabs.length, (i) {
+          final isActive = _tabController.index == i;
+          final icon = tabs[i].$1;
+          final text = tabs[i].$2;
+          return Padding(
+            padding: EdgeInsets.only(
+              left: i > 0 ? 8 : 0,
+            ),
+            child: GestureDetector(
+              onTap: () => _tabController.animateTo(i),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.black : Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: isActive ? Colors.black : colors.textSecondary,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 14,
+                      color: isActive
+                          ? Colors.white
+                          : colors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isActive
+                            ? Colors.white
+                            : colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
       ),
+    ),
     );
   }
 
@@ -1226,13 +1262,13 @@ class _ProfilePageState extends State<ProfilePage>
 // ─── DATA MODELS ─────────────────────────────────────────────────
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
-  _TabBarDelegate(this.tabBar);
+  final Widget child;
+  _TabBarDelegate(this.child);
 
   @override
-  double get minExtent => tabBar.preferredSize.height;
+  double get minExtent => kToolbarHeight;
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get maxExtent => kToolbarHeight;
 
   @override
   Widget build(
@@ -1240,11 +1276,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(color: context.colors.background, child: tabBar);
+    return Container(color: context.colors.background, child: child);
   }
 
   @override
-  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => true;
 }
 
 class _PortfolioItem {
