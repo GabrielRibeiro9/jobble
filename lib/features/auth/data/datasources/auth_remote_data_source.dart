@@ -10,9 +10,9 @@ abstract class AuthRemoteDataSource {
   Future<void> signup(SignupRequest request);
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
-  Future<void> completeOnboarding(String name, String cpf);
+  Future<void> completeOnboarding(String organizationName, {String? description});
   Future<UserModel> getMe();
-  Future<void> updateProfessionalProfile(String tags, String bio);
+  Future<void> updateOrganizationProfile(String tags, String bio);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -100,11 +100,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> completeOnboarding(String name, String cpf) async {
+  Future<void> completeOnboarding(String organizationName, {String? description}) async {
     try {
       await dioClient.dio.post(
         '/auth/complete-onboarding',
-        data: {'name': name, 'cpf': cpf},
+        data: {
+          'organizationName': organizationName,
+          if (description != null) 'description': description,
+        },
       );
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
@@ -137,10 +140,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> updateProfessionalProfile(String tags, String bio) async {
+  Future<void> updateOrganizationProfile(String tags, String bio) async {
     try {
       await dioClient.dio.patch(
-        '/professional/profile',
+        '/organizations/profile',
         data: {'tags': tags, 'bio': bio},
       );
     } on DioException catch (e) {

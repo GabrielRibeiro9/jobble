@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/widgets/app_loader.dart';
 
 class SignupStepProfile extends StatelessWidget {
-  final TextEditingController nameController;
-  final TextEditingController cpfController;
+  final TextEditingController orgNameController;
+  final TextEditingController descriptionController;
   final VoidCallback onFinish;
   final bool isLoading;
 
   const SignupStepProfile({
     super.key,
-    required this.nameController,
-    required this.cpfController,
+    required this.orgNameController,
+    required this.descriptionController,
     required this.onFinish,
     this.isLoading = false,
   });
@@ -21,7 +22,7 @@ class SignupStepProfile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Complete as informações da sua conta',
+          'Crie sua organização',
           style: TextStyle(
             color: context.colors.textPrimary,
             fontSize: 20,
@@ -30,12 +31,12 @@ class SignupStepProfile extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Cadastre seus dados para identificação na loja e maior segurança da conta',
+          'Dê um nome para sua empresa ou organização profissional',
           style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
         ),
         const SizedBox(height: 32),
         Text(
-          'Qual seu nome?',
+          'Nome da organização',
           style: TextStyle(
             color: context.colors.textSecondary,
             fontSize: 14,
@@ -44,10 +45,10 @@ class SignupStepProfile extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: nameController,
+          controller: orgNameController,
           style: TextStyle(color: context.colors.textPrimary),
           decoration: InputDecoration(
-            hintText: 'Nome e sobrenome',
+            hintText: 'Ex: Jobble Elétrica',
             filled: true,
             fillColor: context.colors.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -66,7 +67,7 @@ class SignupStepProfile extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Qual seu CPF?',
+          'Descrição (opcional)',
           style: TextStyle(
             color: context.colors.textSecondary,
             fontSize: 14,
@@ -75,11 +76,11 @@ class SignupStepProfile extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: cpfController,
-          keyboardType: TextInputType.number,
+          controller: descriptionController,
+          maxLines: 3,
           style: TextStyle(color: context.colors.textPrimary),
           decoration: InputDecoration(
-            hintText: 'CPF',
+            hintText: 'Descreva os serviços da sua organização',
             filled: true,
             fillColor: context.colors.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -138,14 +139,7 @@ class SignupStepProfile extends StatelessWidget {
               disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
             ),
             child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                ? const AppLoader()
                 : Text(
                     'Finalizar',
                     style: TextStyle(

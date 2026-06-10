@@ -45,20 +45,23 @@ class EmailVerificationSubmitted extends AuthEvent {
 }
 
 class CompleteOnboardingSubmitted extends AuthEvent {
-  final String name;
-  final String cpf;
+  final String organizationName;
+  final String? description;
 
-  const CompleteOnboardingSubmitted({required this.name, required this.cpf});
+  const CompleteOnboardingSubmitted({
+    required this.organizationName,
+    this.description,
+  });
 
   @override
-  List<Object?> get props => [name, cpf];
+  List<Object?> get props => [organizationName, description];
 }
 
-class UpdateProfessionalProfileSubmitted extends AuthEvent {
+class UpdateOrganizationProfileSubmitted extends AuthEvent {
   final String tags;
   final String bio;
 
-  const UpdateProfessionalProfileSubmitted({required this.tags, required this.bio});
+  const UpdateOrganizationProfileSubmitted({required this.tags, required this.bio});
 
   @override
   List<Object> get props => [tags, bio];
@@ -78,3 +81,12 @@ class UserRequested extends AuthEvent {}
 class LogoutRequested extends AuthEvent {}
 
 class ConnectionErrorLogoutRequested extends AuthEvent {}
+
+class OrganizationAvatarUpdated extends AuthEvent {
+  final String avatarUrl;
+
+  const OrganizationAvatarUpdated(this.avatarUrl);
+
+  @override
+  List<Object> get props => [avatarUrl];
+}

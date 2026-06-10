@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/widgets/app_loader.dart';
 
 class SignupStepEmail extends StatefulWidget {
   final TextEditingController nameController;
@@ -185,14 +186,7 @@ class _SignupStepEmailState extends State<SignupStepEmail> {
               disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
             ),
             child: widget.isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                ? const AppLoader()
                 : Text(
                     'Continuar',
                     style: TextStyle(

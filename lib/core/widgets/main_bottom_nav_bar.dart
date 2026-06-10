@@ -40,7 +40,7 @@ class MainBottomNavBar extends StatelessWidget {
                 const SizedBox(width: 10),
                 _buildNavItem(LucideIcons.settings, 3),
                 const SizedBox(width: 10),
-                _buildProfileItem(4),
+                _buildProfileItem(context, 4),
               ],
             ),
           ),
@@ -71,13 +71,20 @@ class MainBottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileItem(int index) {
+  Widget _buildProfileItem(BuildContext context, int index) {
     final isActive = currentIndex == index;
+    final authState = context.read<AuthBloc>().state;
+    final hasPhoto = authState is AuthSuccess &&
+        authState.user != null &&
+        authState.user!.organization?.avatarUrl != null &&
+        authState.user!.organization!.avatarUrl!.isNotEmpty;
+    final itemPadding = hasPhoto ? 6.0 : 10.0;
+
     return GestureDetector(
       onTap: () => onItemSelected(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(6),
+        padding: EdgeInsets.all(itemPadding),
         decoration: BoxDecoration(
           color: isActive
               ? Colors.white.withValues(alpha: 0.2)
@@ -89,8 +96,9 @@ class MainBottomNavBar extends StatelessWidget {
             String? avatarUrl;
             String fallbackName = '';
             if (state is AuthSuccess && state.user != null) {
-              avatarUrl = state.user!.avatarUrl;
-              fallbackName = state.user!.name ?? '';
+              final org = state.user!.organization;
+              avatarUrl = org?.avatarUrl;
+              fallbackName = org?.name ?? '';
             }
 
             if (avatarUrl != null && avatarUrl.isNotEmpty) {

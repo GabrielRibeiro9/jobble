@@ -36,7 +36,7 @@ class DatabaseHelper {
         name TEXT,
         email TEXT NOT NULL,
         avatarUrl TEXT,
-        professionalProfileId TEXT
+        organizationId TEXT
       )
     ''');
   }

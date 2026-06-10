@@ -1,54 +1,244 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/features/home/presentation/widgets/notifications_sheet.dart';
+import 'package:flutter_tcc/core/network/dio_client.dart';
+import 'package:flutter_tcc/injection_container.dart';
+import 'package:flutter_tcc/features/notifications/data/datasources/notification_remote_data_source.dart';
+import 'package:flutter_tcc/features/notifications/data/models/notification_model.dart';
+import 'package:flutter_tcc/core/widgets/app_loader.dart';
+import 'package:flutter_tcc/features/bids/presentation/pages/match_details_page.dart';
 
-class InboxPage extends StatelessWidget {
+enum NotificationType { match, proposalApproved }
+
+class NotificationItem {
+  final String id;
+  final String personName;
+  final NotificationType type;
+  final DateTime dateTime;
+  final bool? isUnread;
+  final String? serviceRequestId;
+
+  NotificationItem({
+    required this.id,
+    required this.personName,
+    required this.type,
+    required this.dateTime,
+    this.isUnread,
+    this.serviceRequestId,
+  });
+
+  String get title {
+    return switch (type) {
+      NotificationType.match => '$personName precisa dos seus serviços',
+      NotificationType.proposalApproved => '$personName aceitou a sua proposta',
+    };
+  }
+
+  IconData get icon => switch (type) {
+    NotificationType.match => LucideIcons.sparkle,
+    NotificationType.proposalApproved => LucideIcons.badge_check,
+  };
+}
+
+class InboxPage extends StatefulWidget {
   const InboxPage({super.key});
 
-  static const List<NotificationItem> _notifications = [
-    NotificationItem(
-      title: 'Novo pedido próximo',
-      description:
-          'Um novo serviço de Elétrica está disponível a 2.5km de você.',
-      time: 'há 5 min',
-      icon: LucideIcons.map_pin,
-      iconColor: Colors.blue,
-      isUnread: true,
-    ),
-    NotificationItem(
-      title: 'Pagamento recebido',
-      description: 'Sua transferência de R\$ 250,00 foi concluída com sucesso.',
-      time: 'há 2 horas',
-      icon: LucideIcons.circle_check,
-      iconColor: Colors.green,
-    ),
-    NotificationItem(
-      title: 'Nova avaliação',
-      description:
-          'João Silva te avaliou com 5 estrelas: "Excelente profissional!".',
-      time: 'Ontem',
-      icon: LucideIcons.star,
-      iconColor: Colors.amber,
-      isUnread: true,
-    ),
-  ];
+  @override
+  State<InboxPage> createState() => _InboxPageState();
+}
+
+class _InboxPageState extends State<InboxPage> {
+  final NotificationRemoteDataSource _dataSource = NotificationRemoteDataSource(
+    dioClient: sl<DioClient>(),
+  );
+  List<NotificationItem> _notifications = [];
+  bool _loading = true;
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _fetchNotifications();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchNotifications() async {
+    try {
+      final models = await _dataSource.fetchAll();
+      if (!mounted) return;
+      setState(() {
+        _notifications = models.map(_toNotificationItem).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Erro ao buscar notificações: $e');
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  NotificationItem _toNotificationItem(NotificationModel model) {
+    final type = model.type == 'MATCH'
+        ? NotificationType.match
+        : NotificationType.proposalApproved;
+    return NotificationItem(
+      id: model.id,
+      personName: model.personName,
+      type: type,
+      dateTime: model.createdAt,
+      isUnread: model.isUnread,
+      serviceRequestId: model.serviceRequestId,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return _notifications.isEmpty
-        ? _buildEmptyState(colors)
-        : ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: _notifications.length,
-            separatorBuilder: (context, index) =>
-                Divider(color: colors.border.withValues(alpha: 0.3), height: 1),
-            itemBuilder: (context, index) {
-              return _buildNotificationCard(colors, _notifications[index]);
-            },
+    if (_loading) {
+      return const Center(child: AppLoader());
+    }
+
+    if (_notifications.isEmpty) {
+      return _buildEmptyState(colors);
+    }
+
+    final grouped = _groupByDay(_notifications);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        for (final group in grouped) ...[
+          _buildDayHeader(colors, group.date),
+          for (final notification in group.items)
+            _buildNotification(colors, notification),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDayHeader(AppColorsTheme colors, DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateDay = DateTime(date.year, date.month, date.day);
+
+    String label;
+    if (dateDay == today) {
+      label = 'Hoje';
+    } else if (dateDay == yesterday) {
+      label = 'Ontem';
+    } else {
+      const months = [
+        'jan',
+        'fev',
+        'mar',
+        'abr',
+        'mai',
+        'jun',
+        'jul',
+        'ago',
+        'set',
+        'out',
+        'nov',
+        'dez',
+      ];
+      label =
+          '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: colors.textSecondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotification(AppColorsTheme colors, NotificationItem item) {
+    final hour = item.dateTime.hour.toString().padLeft(2, '0');
+    final minute = item.dateTime.minute.toString().padLeft(2, '0');
+    final timeLabel = '${hour}h$minute';
+
+    return GestureDetector(
+      onTap: () {
+        if (item.type == NotificationType.match &&
+            item.serviceRequestId != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => MatchDetailsPage(
+                serviceRequestId: item.serviceRequestId!,
+                clientName: item.personName,
+              ),
+            ),
           );
+        }
+      },
+      child: Opacity(
+        opacity: item.isUnread == false ? 0.5 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.surfaceLight,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(item.icon, size: 18, color: colors.textSecondary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 14,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeLabel,
+                          style: TextStyle(
+                            color: colors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildEmptyState(AppColorsTheme colors) {
@@ -56,91 +246,39 @@ class InboxPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            LucideIcons.bell_off,
-            size: 48,
-            color: colors.textSecondary.withValues(alpha: 0.5),
-          ),
           const SizedBox(height: 16),
           Text(
             'Nenhuma notificação por enquanto',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: colors.textSecondary, fontSize: 14),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildNotificationCard(AppColorsTheme colors, NotificationItem item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: item.iconColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(item.icon, color: item.iconColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 15,
-                          fontWeight:
-                              item.isUnread ? FontWeight.bold : FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if (item.isUnread)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: colors.themePrimary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.description,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  item.time,
-                  style: TextStyle(
-                    color: colors.textHint,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+List<DayGroup> _groupByDay(List<NotificationItem> items) {
+  final sorted = List<NotificationItem>.from(items)
+    ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+  final groups = <DayGroup>[];
+  for (final item in sorted) {
+    final day = DateTime(
+      item.dateTime.year,
+      item.dateTime.month,
+      item.dateTime.day,
     );
+    if (groups.isEmpty || groups.last.date != day) {
+      groups.add(DayGroup(date: day, items: []));
+    }
+    groups.last.items.add(item);
   }
+  return groups;
+}
+
+class DayGroup {
+  final DateTime date;
+  final List<NotificationItem> items;
+
+  DayGroup({required this.date, required this.items});
 }

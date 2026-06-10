@@ -10,7 +10,7 @@ import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.d
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/get_me_usecase.dart';
-import 'package:flutter_tcc/features/auth/domain/usecases/update_professional_profile_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/update_organization_profile_usecase.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:flutter_tcc/core/database/database_helper.dart';
@@ -25,6 +25,10 @@ import 'package:flutter_tcc/features/home/data/repositories/home_repository_impl
 import 'package:flutter_tcc/features/home/domain/repositories/home_repository.dart';
 import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart';
 
+import 'package:flutter_tcc/features/profile/data/datasources/profile_remote_data_source.dart';
+import 'package:flutter_tcc/features/notifications/data/datasources/notification_remote_data_source.dart';
+import 'package:flutter_tcc/features/bids/data/datasources/bid_remote_data_source.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -38,7 +42,7 @@ Future<void> init() async {
       completeOnboardingUseCase: sl(),
       resendVerificationCodeUseCase: sl(),
       getMeUseCase: sl(),
-      updateProfessionalProfileUseCase: sl(),
+      updateOrganizationProfileUseCase: sl(),
       tokenService: sl(),
     ),
   );
@@ -50,7 +54,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CompleteOnboardingUseCase(repository: sl()));
   sl.registerLazySingleton(() => ResendVerificationCodeUseCase(repository: sl()));
   sl.registerLazySingleton(() => GetMeUseCase(repository: sl()));
-  sl.registerLazySingleton(() => UpdateProfessionalProfileUseCase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateOrganizationProfileUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -88,4 +92,19 @@ Future<void> init() async {
   sl.registerLazySingleton(() => TokenService());
   sl.registerLazySingleton(() => ThemeCubit());
   sl.registerLazySingleton(() => ConfigBloc());
+
+  // Profile
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  // Notifications
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSource(dioClient: sl()),
+  );
+
+  // Bids
+  sl.registerLazySingleton<BidRemoteDataSource>(
+    () => BidRemoteDataSource(dioClient: sl()),
+  );
 }

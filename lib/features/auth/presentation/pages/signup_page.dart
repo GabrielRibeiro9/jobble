@@ -13,7 +13,6 @@ import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_pa
 import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
-import 'package:flutter_tcc/features/auth/presentation/pages/verify_otp_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -31,7 +30,8 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _orgNameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   @override
   void dispose() {
@@ -40,7 +40,8 @@ class _SignupPageState extends State<SignupPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameController.dispose();
-    _cpfController.dispose();
+    _orgNameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -57,6 +58,7 @@ class _SignupPageState extends State<SignupPage> {
 
     context.read<AuthBloc>().add(
       SignupSubmitted(
+        name: _nameController.text,
         email: _emailController.text,
         password: _passwordController.text,
       ),
@@ -103,27 +105,21 @@ class _SignupPageState extends State<SignupPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthSignupStep1Success) {
-          _nextPage();
-          // Trigger OTP resend automatically when reaching Step 2
-          context.read<AuthBloc>().add(
-            ResendVerificationEmailRequested(email: _emailController.text),
-          );
+          _pageController.jumpToPage(2);
         } else if (state is AuthVerificationSuccess) {
           _nextPage();
         } else if (state is AuthSuccess) {
           final tokenService = di.sl<TokenService>();
 
-          final verified = tokenService.isVerified(state.accessToken);
           final completed = tokenService.isOnboardingCompleted(
             state.accessToken,
           );
-          final email = tokenService.getUserEmail(state.accessToken);
 
           if (!completed && _currentStep == 2) {
             context.read<AuthBloc>().add(
               CompleteOnboardingSubmitted(
-                name: _nameController.text,
-                cpf: _cpfController.text,
+                organizationName: _orgNameController.text,
+                description: _descriptionController.text,
               ),
             );
             return;
@@ -132,12 +128,7 @@ class _SignupPageState extends State<SignupPage> {
           if (!mounted) return;
 
           Widget nextStep;
-          if (!verified) {
-            nextStep = VerifyOtpPage(
-              email: email ?? _emailController.text,
-              source: VerifyOtpSource.signup,
-            );
-          } else if (!completed) {
+          if (!completed) {
             nextStep = const CompleteProfilePage();
           } else {
             nextStep = const MainShellPage();
@@ -227,8 +218,8 @@ class _SignupPageState extends State<SignupPage> {
                     Stack(
                       children: [
                         SignupStepProfile(
-                          nameController: _nameController,
-                          cpfController: _cpfController,
+                          orgNameController: _orgNameController,
+                          descriptionController: _descriptionController,
                           onFinish: isLoading ? () {} : _onFinish,
                         ),
                         if (isLoading && _currentStep == 2)

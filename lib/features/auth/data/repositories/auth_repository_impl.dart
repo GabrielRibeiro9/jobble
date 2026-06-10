@@ -46,8 +46,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> completeOnboarding(String name, String cpf) async {
-    await remoteDataSource.completeOnboarding(name, cpf);
+  Future<void> completeOnboarding(String organizationName, {String? description}) async {
+    await remoteDataSource.completeOnboarding(organizationName, description: description);
   }
   @override
   Future<User> getMe() async {
@@ -67,7 +67,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> updateProfessionalProfile(String tags, String bio) async {
-    await remoteDataSource.updateProfessionalProfile(tags, bio);
+  Future<void> updateOrganizationProfile(String tags, String bio) async {
+    await remoteDataSource.updateOrganizationProfile(tags, bio);
   }
 }

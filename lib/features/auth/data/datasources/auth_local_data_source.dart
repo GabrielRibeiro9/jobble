@@ -27,7 +27,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         'name': user.name,
         'email': user.email,
         'avatarUrl': user.avatarUrl,
-        'professionalProfileId': user.professionalProfileId,
+        'organizationId': user.organizationId,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -46,10 +46,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         name: maps.first['name'] as String?,
         email: maps.first['email'] as String,
         avatarUrl: maps.first['avatarUrl'] as String?,
-        // Se professionalProfileId não for nulo no banco, enviamos null e o cliente gerencia, ou precisamos formatar
-        // como o toJson do UserModel requer se fosse desserializar via fromJson, 
-        // mas aqui mapeamos direto pro construtor do UserModel.
-        professionalProfileId: maps.first['professionalProfileId'] as String?,
+        organizationId: maps.first['organizationId'] as String?,
       );
     }
 

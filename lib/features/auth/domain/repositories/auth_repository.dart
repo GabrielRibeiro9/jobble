@@ -11,7 +11,7 @@ abstract class AuthRepository {
   });
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
-  Future<void> completeOnboarding(String name, String cpf);
+  Future<void> completeOnboarding(String organizationName, {String? description});
   Future<User> getMe();
-  Future<void> updateProfessionalProfile(String tags, String bio);
+  Future<void> updateOrganizationProfile(String tags, String bio);
 }

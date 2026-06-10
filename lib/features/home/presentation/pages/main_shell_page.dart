@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/widgets/main_bottom_nav_bar.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
@@ -71,21 +70,14 @@ class _MainShellPageState extends State<MainShellPage> {
           elevation: 0,
           centerTitle: true,
           title: Text(
-            'Minha Agenda',
+            'Serviços',
             style: TextStyle(
               color: colors.textPrimary,
               fontWeight: FontWeight.w700,
               fontSize: 18,
             ),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: colors.border.withValues(alpha: 0.5),
-            ),
-          ),
+
         );
       case 2:
         return AppBar(
@@ -100,25 +92,37 @@ class _MainShellPageState extends State<MainShellPage> {
               fontSize: 18,
             ),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: colors.border.withValues(alpha: 0.5),
-            ),
-          ),
+
         );
       case 3:
         return AppBar(
-          backgroundColor: colors.background,
+          backgroundColor: colors.surface,
           elevation: 0,
-          actions: [
-            IconButton(
-              icon: Icon(LucideIcons.bell, color: colors.textPrimary),
-              onPressed: () {},
+          centerTitle: true,
+          title: Text(
+            'Configurações',
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
             ),
-          ],
+          ),
+
+        );
+      case 4:
+        return AppBar(
+          backgroundColor: colors.surface,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'Perfil',
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+            ),
+          ),
+
         );
       default:
         return null;

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 
 class SettingsCenterPage extends StatelessWidget {
@@ -18,8 +14,6 @@ class SettingsCenterPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
-          _buildProfileSection(context),
-          const SizedBox(height: 32),
           _buildActionGrid(context),
           const SizedBox(height: 40),
           _buildSectionHeader(context, 'Central de Segurança'),
@@ -49,60 +43,6 @@ class SettingsCenterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        String? avatarUrl;
-        String name = 'Convidado';
-        String email = 'Entrar na sua conta';
-
-        if (state is AuthSuccess && state.user != null) {
-          avatarUrl = state.user!.avatarUrl;
-          name = state.user!.name ?? 'Usuário';
-          email = state.user!.email;
-        }
-
-        return InkWell(
-          onTap: () {},
-          child: Row(
-            children: [
-              ProfileAvatar(size: 56, imageUrl: avatarUrl, fallbackName: name),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: TextStyle(
-                        color: context.colors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      email,
-                      style: TextStyle(
-                        color: context.colors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                LucideIcons.chevron_right,
-                color: context.colors.textSecondary,
-                size: 20,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildActionGrid(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -127,8 +67,6 @@ class SettingsCenterPage extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _buildActionCard(context, LucideIcons.gauge, 'Meus\nGanhos'),
-          const SizedBox(width: 12),
-          _buildActionCard(context, LucideIcons.pencil, 'Editar\nPerfil'),
         ],
       ),
     );
@@ -198,18 +136,18 @@ class SettingsCenterPage extends StatelessWidget {
         Expanded(
           child: _buildInfoCard(
             context,
-            'Meus Limites',
-            'Gestão de limites diários',
-            LucideIcons.user,
+            'Trocar Senha',
+            'Alterar sua senha de acesso',
+            LucideIcons.lock,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildInfoCard(
             context,
-            'Token e Autorizações',
-            'Autenticar com QR Code ou iSafe',
-            null,
+            'Autenticação em\n2 Fatores',
+            'Adicionar camada extra de segurança',
+            LucideIcons.shield,
           ),
         ),
       ],

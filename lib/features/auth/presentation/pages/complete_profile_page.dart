@@ -16,21 +16,21 @@ class CompleteProfilePage extends StatefulWidget {
 }
 
 class _CompleteProfilePageState extends State<CompleteProfilePage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _orgNameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _cpfController.dispose();
+    _orgNameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   void _onFinish() {
     context.read<AuthBloc>().add(
       CompleteOnboardingSubmitted(
-        name: _nameController.text,
-        cpf: _cpfController.text,
+        organizationName: _orgNameController.text,
+        description: _descriptionController.text,
       ),
     );
   }
@@ -79,8 +79,8 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                 return Stack(
                   children: [
                     SignupStepProfile(
-                      nameController: _nameController,
-                      cpfController: _cpfController,
+                      orgNameController: _orgNameController,
+                      descriptionController: _descriptionController,
                       onFinish: isLoading ? () {} : _onFinish,
                     ),
                     if (isLoading)

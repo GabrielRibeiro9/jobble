@@ -7,9 +7,12 @@ import 'package:flutter_tcc/features/auth/domain/usecases/verify_email_usecase.d
 import 'package:flutter_tcc/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/resend_verification_code_usecase.dart';
 import 'package:flutter_tcc/features/auth/domain/usecases/get_me_usecase.dart';
-import 'package:flutter_tcc/features/auth/domain/usecases/update_professional_profile_usecase.dart';
+import 'package:flutter_tcc/features/auth/domain/usecases/update_organization_profile_usecase.dart';
 
 import 'package:flutter_tcc/core/services/token_service.dart';
+
+import 'package:flutter_tcc/features/auth/data/models/user_model.dart';
+import 'package:flutter_tcc/features/auth/domain/entities/user.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
@@ -18,7 +21,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CompleteOnboardingUseCase completeOnboardingUseCase;
   final ResendVerificationCodeUseCase resendVerificationCodeUseCase;
   final GetMeUseCase getMeUseCase;
-  final UpdateProfessionalProfileUseCase updateProfessionalProfileUseCase;
+  final UpdateOrganizationProfileUseCase updateOrganizationProfileUseCase;
   final TokenService tokenService;
 
   AuthBloc({
@@ -28,18 +31,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.completeOnboardingUseCase,
     required this.resendVerificationCodeUseCase,
     required this.getMeUseCase,
-    required this.updateProfessionalProfileUseCase,
+    required this.updateOrganizationProfileUseCase,
     required this.tokenService,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignupSubmitted>(_onSignupSubmitted);
     on<EmailVerificationSubmitted>(_onEmailVerificationSubmitted);
     on<CompleteOnboardingSubmitted>(_onCompleteOnboardingSubmitted);
-    on<UpdateProfessionalProfileSubmitted>(_onUpdateProfessionalProfileSubmitted);
+    on<UpdateOrganizationProfileSubmitted>(_onUpdateOrganizationProfileSubmitted);
     on<ResendVerificationEmailRequested>(_onResendVerificationEmailRequested);
     on<UserRequested>(_onUserRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<ConnectionErrorLogoutRequested>(_onConnectionErrorLogoutRequested);
+    on<OrganizationAvatarUpdated>(_onOrganizationAvatarUpdated);
   }
 
   Future<void> _onLogoutRequested(
@@ -125,7 +129,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      await completeOnboardingUseCase.execute(event.name, event.cpf);
+      await completeOnboardingUseCase.execute(
+        event.organizationName,
+        description: event.description,
+      );
+      final token = await tokenService.getToken();
+      if (token != null) {
+        final user = await getMeUseCase.execute();
+        emit(AuthSuccess(accessToken: token, user: user));
+      }
       emit(AuthOnboardingSuccess());
     } catch (e) {
       final message = e.toString().replaceAll('Exception: ', '');
@@ -133,13 +145,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onUpdateProfessionalProfileSubmitted(
-    UpdateProfessionalProfileSubmitted event,
+  Future<void> _onUpdateOrganizationProfileSubmitted(
+    UpdateOrganizationProfileSubmitted event,
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
     try {
-      await updateProfessionalProfileUseCase.execute(event.tags, event.bio);
+      await updateOrganizationProfileUseCase.execute(event.tags, event.bio);
       final user = await getMeUseCase.execute();
       final currentState = state;
       if (currentState is AuthSuccess) {
@@ -176,6 +188,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } else {
       await tokenService.deleteToken();
       emit(AuthInitial());
+    }
+  }
+
+  void _onOrganizationAvatarUpdated(
+    OrganizationAvatarUpdated event,
+    Emitter<AuthState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is AuthSuccess && currentState.user != null) {
+      final user = currentState.user!;
+      final org = user.organization;
+      final updatedOrg = org != null
+          ? OrganizationData(
+              id: org.id,
+              name: org.name,
+              avatarUrl: event.avatarUrl,
+              tags: org.tags,
+              bio: org.bio,
+              rating: org.rating,
+              projectsCount: org.projectsCount,
+              matchesCount: org.matchesCount,
+            )
+          : null;
+      final updatedUser = UserModel(
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        organizationId: user.organizationId,
+        organization: updatedOrg,
+      );
+      emit(AuthSuccess(accessToken: currentState.accessToken, user: updatedUser));
     }
   }
 }

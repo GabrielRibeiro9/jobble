@@ -1,11 +1,11 @@
 import 'package:flutter_tcc/features/auth/domain/repositories/auth_repository.dart';
 
-class UpdateProfessionalProfileUseCase {
+class UpdateOrganizationProfileUseCase {
   final AuthRepository repository;
 
-  UpdateProfessionalProfileUseCase({required this.repository});
+  UpdateOrganizationProfileUseCase({required this.repository});
 
   Future<void> execute(String tags, String bio) async {
-    await repository.updateProfessionalProfile(tags, bio);
+    await repository.updateOrganizationProfile(tags, bio);
   }
 }

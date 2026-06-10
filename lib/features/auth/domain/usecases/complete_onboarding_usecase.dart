@@ -5,7 +5,7 @@ class CompleteOnboardingUseCase {
 
   CompleteOnboardingUseCase({required this.repository});
 
-  Future<void> execute(String name, String cpf) async {
-    await repository.completeOnboarding(name, cpf);
+  Future<void> execute(String organizationName, {String? description}) async {
+    await repository.completeOnboarding(organizationName, description: description);
   }
 }

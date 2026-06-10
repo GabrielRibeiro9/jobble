@@ -22,10 +22,6 @@ class ProfileAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surface,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: context.colors.borderLight.withValues(alpha: 0.5),
-          width: 1,
-        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: _buildContent(context),

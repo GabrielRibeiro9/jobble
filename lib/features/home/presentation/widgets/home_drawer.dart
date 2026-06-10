@@ -128,12 +128,15 @@ class HomeDrawer extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         String? avatarUrl;
+        String avatarFallback = '';
         String name = 'Convidado';
         String email = 'Entrar na sua conta';
 
         if (state is AuthSuccess && state.user != null) {
-          avatarUrl = state.user!.avatarUrl;
-          name = state.user!.name ?? 'Usuário';
+          final org = state.user!.organization;
+          avatarUrl = org?.avatarUrl;
+          avatarFallback = org?.name ?? '';
+          name = org?.name ?? 'Usuário';
           email = state.user!.email;
         }
 
@@ -149,7 +152,7 @@ class HomeDrawer extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ProfileAvatar(size: 40, imageUrl: avatarUrl, fallbackName: name),
+              ProfileAvatar(size: 40, imageUrl: avatarUrl, fallbackName: avatarFallback),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

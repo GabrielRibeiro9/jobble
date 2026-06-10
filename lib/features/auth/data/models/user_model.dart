@@ -6,19 +6,23 @@ class UserModel extends User {
     super.name,
     required super.email,
     super.avatarUrl,
-    super.professionalProfileId,
-    super.professionalProfile,
+    super.organizationId,
+    super.organization,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    ProfessionalProfileData? profileData;
-    if (json['professionalProfile'] != null) {
-      final pp = json['professionalProfile'] as Map<String, dynamic>;
-      profileData = ProfessionalProfileData(
-        id: pp['id'] as String?,
-        tags: pp['tags'] as String?,
-        bio: pp['bio'] as String?,
-        rating: (pp['rating'] as num?)?.toDouble() ?? 5.0,
+    OrganizationData? orgData;
+    if (json['organization'] != null) {
+      final org = json['organization'] as Map<String, dynamic>;
+      orgData = OrganizationData(
+        id: org['id'] as String?,
+        name: org['name'] as String?,
+        avatarUrl: org['avatarUrl'] as String?,
+        tags: org['tags'] as String?,
+        bio: org['bio'] as String?,
+        rating: (org['rating'] as num?)?.toDouble() ?? 5.0,
+        projectsCount: org['projectsCount'] as int? ?? 0,
+        matchesCount: org['matchesCount'] as int? ?? 0,
       );
     }
 
@@ -27,10 +31,8 @@ class UserModel extends User {
       name: json['name'] as String?,
       email: json['email'] as String,
       avatarUrl: json['avatarUrl'] as String?,
-      professionalProfileId: json['professionalProfile'] != null 
-          ? json['professionalProfile']['id'] as String?
-          : null,
-      professionalProfile: profileData,
+      organizationId: orgData?.id,
+      organization: orgData,
     );
   }
 
@@ -40,8 +42,8 @@ class UserModel extends User {
       'name': name,
       'email': email,
       'avatarUrl': avatarUrl,
-      'professionalProfile': professionalProfileId != null 
-          ? {'id': professionalProfileId}
+      'organization': organizationId != null 
+          ? {'id': organizationId}
           : null,
     };
   }
