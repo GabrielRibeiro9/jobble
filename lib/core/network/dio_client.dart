@@ -5,7 +5,8 @@ class DioClient {
   late final Dio _dio;
   final TokenService tokenService;
 
-  static const String baseUrl = 'http://10.0.2.2:3333';
+  static const String baseUrl = 'jobble-api.up.railway.app';
+  // static const String baseUrl = 'http://10.0.2.2:3333';
 
   DioClient({required this.tokenService}) {
     _dio = Dio(
@@ -13,9 +14,7 @@ class DioClient {
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 15),
-        headers: {
-          'Accept': 'application/json',
-        },
+        headers: {'Accept': 'application/json'},
       ),
     );
 
