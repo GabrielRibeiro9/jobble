@@ -4,6 +4,18 @@
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Precisamos da sua localização para mostrar no mapa e conectar você a serviços próximos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos da câmera para você fotografar seus trabalhos e sua foto de perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Precisamos acessar suas fotos para você escolher imagens do seu portfólio e da sua foto de perfil.</string>
+	<!-- Permite HTTP em texto puro apenas para hosts de rede local
+	     (backend rodando em localhost / 10.0.2.2 durante o desenvolvimento).
+	     Tráfego para a internet continua exigindo HTTPS. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
