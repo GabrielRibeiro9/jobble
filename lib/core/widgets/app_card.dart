@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 
 /// Superfície de conteúdo: retângulo arredondado sobre o fundo, sem sombra.
 /// A separação vem da diferença de luminância, não de elevação.
@@ -85,6 +86,100 @@ class AppSectionHeader extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Card de escolha única: título, apoio e um indicador circular à direita.
+///
+/// Substitui um `Radio` dentro de um card. A seleção é comunicada por três
+/// sinais somados — borda em lima, fundo levemente tingido e o círculo
+/// preenchido — para não depender só de cor.
+class AppSelectableCard extends StatelessWidget {
+  const AppSelectableCard({
+    super.key,
+    required this.title,
+    required this.selected,
+    required this.onTap,
+    this.subtitle,
+  });
+
+  final String title;
+  final String? subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: AppDuration.fast,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: selected
+                ? colors.primary.withValues(alpha: 0.08)
+                : colors.surface,
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(
+              color: selected ? colors.primary : colors.border,
+              width: selected ? AppSize.borderFocused : AppSize.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.title.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected ? colors.primary : Colors.transparent,
+                  border: Border.all(
+                    color: selected ? colors.primary : colors.borderStrong,
+                    width: 1.5,
+                  ),
+                ),
+                child: selected
+                    ? Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: colors.onPrimary,
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

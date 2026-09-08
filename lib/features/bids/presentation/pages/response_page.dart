@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/core/widgets/app_loader.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_card.dart';
+import 'package:flutter_tcc/core/widgets/app_text_field.dart';
 import 'package:flutter_tcc/core/network/dio_client.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:flutter_tcc/features/bids/data/datasources/bid_remote_data_source.dart';
@@ -134,50 +138,41 @@ class _ResponsePageState extends State<ResponsePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Responder Solicitação'),
-        centerTitle: true,
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        title: const Text('Responder'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenH,
+          AppSpacing.md,
+          AppSpacing.screenH,
+          AppSpacing.xl,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Responder para ${widget.clientName}',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                'Proposta para ${widget.clientName}',
+                style: AppTypography.h2.copyWith(color: colors.textPrimary),
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Valor do Serviço',
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
+              const SizedBox(height: AppSpacing.section),
+              AppTextField(
                 controller: _valueController,
+                label: 'Valor do serviço',
+                hint: '0,00',
                 keyboardType: TextInputType.number,
                 inputFormatters: [_MoneyInputFormatter()],
-                decoration: InputDecoration(
-                  prefixText: 'R\$ ',
-                  hintText: '0,00',
-                  filled: true,
-                  fillColor: colors.surfaceLight,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                ),
-                style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                prefixIcon: Icons.attach_money_rounded,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Informe o valor';
                   final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
@@ -185,68 +180,80 @@ class _ResponsePageState extends State<ResponsePage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               Text(
-                'Tipo de Atendimento',
-                style: TextStyle(
+                'Tipo de atendimento',
+                style: AppTypography.label.copyWith(
                   color: colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 8),
-              _serviceTypeOption(colors, true, 'Atendimento Imediato',
-                  'Posso realizar o serviço assim que for aceito'),
-              const SizedBox(height: 8),
-              _serviceTypeOption(colors, false, 'Serviço Agendado',
-                  'Preciso agendar uma data para realizar o serviço'),
+              const SizedBox(height: AppSpacing.xs),
+              AppSelectableCard(
+                title: 'Atendimento imediato',
+                subtitle: 'Posso realizar o serviço assim que for aceito',
+                selected: _isImmediate,
+                onTap: () => setState(() {
+                  _isImmediate = true;
+                  _selectedDate = null;
+                  _selectedTime = null;
+                }),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              AppSelectableCard(
+                title: 'Serviço agendado',
+                subtitle: 'Preciso marcar uma data para realizar o serviço',
+                selected: !_isImmediate,
+                onTap: () => setState(() => _isImmediate = false),
+              ),
               if (!_isImmediate) ...[
-                const SizedBox(height: 16),
-                InkWell(
-                  onTap: _pickDate,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: colors.surfaceLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, size: 18, color: colors.textSecondary),
-                        const SizedBox(width: 10),
-                        Text(
-                          _selectedDate != null && _selectedTime != null
-                              ? '${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year} às ${_selectedTime!.hour.toString().padLeft(2, '0')}h${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                              : 'Selecionar data e horário',
-                          style: TextStyle(
-                            color: _selectedDate != null ? colors.textPrimary : colors.textSecondary,
-                            fontSize: 14,
-                          ),
+                const SizedBox(height: AppSpacing.md),
+                AppFieldGroup(
+                  label: 'Data do atendimento',
+                  child: GestureDetector(
+                    onTap: _pickDate,
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: double.infinity,
+                      height: AppSize.field,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.mdAll,
+                        border: Border.all(
+                          color: colors.border,
+                          width: AppSize.border,
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 18,
+                            color: colors.textSecondary,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              _scheduleLabel(),
+                              style: AppTypography.body.copyWith(
+                                color: _selectedDate != null
+                                    ? colors.textPrimary
+                                    : colors.textHint,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ],
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _submitting ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: _submitting
-                      ? const Padding(
-                          padding: EdgeInsets.all(2),
-                          child: AppLoader(),
-                        )
-                      : const Text('Enviar Proposta'),
-                ),
+              const SizedBox(height: AppSpacing.section),
+              AppPrimaryButton(
+                label: 'Enviar proposta',
+                isLoading: _submitting,
+                onPressed: _submit,
               ),
             ],
           ),
@@ -255,59 +262,15 @@ class _ResponsePageState extends State<ResponsePage> {
     );
   }
 
-  Widget _serviceTypeOption(AppColorsTheme colors, bool value, String title, String subtitle) {
-    return InkWell(
-      onTap: () => setState(() {
-        _isImmediate = value;
-        if (value) {
-          _selectedDate = null;
-          _selectedTime = null;
-        }
-      }),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: _isImmediate == value ? colors.themePrimary.withValues(alpha: 0.08) : colors.surfaceLight,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: _isImmediate == value ? colors.themePrimary : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Radio<bool>(
-              value: value,
-              groupValue: _isImmediate,
-              onChanged: (v) => setState(() => _isImmediate = v ?? true),
-              activeColor: colors.themePrimary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _scheduleLabel() {
+    final date = _selectedDate;
+    final time = _selectedTime;
+    if (date == null || time == null) return 'Selecionar data e horário';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$day/$month/${date.year} às ${hour}h$minute';
   }
+
 }

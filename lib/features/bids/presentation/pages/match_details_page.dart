@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_card.dart';
+import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
+import 'package:flutter_tcc/core/widgets/app_list_row.dart';
 import 'package:flutter_tcc/core/network/dio_client.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
 import 'package:flutter_tcc/injection_container.dart';
@@ -57,44 +63,51 @@ class _MatchDetailsPageState extends State<MatchDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Detalhes da Solicitação',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-        centerTitle: true,
+        title: const Text('Solicitação'),
         actions: [
-          IconButton(
-            icon: Icon(LucideIcons.trash_2, color: colors.textSecondary),
-            onPressed: _dismiss,
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            child: AppCircleIconButton(
+              icon: LucideIcons.trash_2,
+              tooltip: 'Descartar',
+              onPressed: _dismiss,
+            ),
           ),
         ],
       ),
       body: _loading
           ? const Center(child: AppLoader())
-          : _request == null
-          ? Center(
-              child: Text(
-                'Erro ao carregar detalhes',
-                style: TextStyle(color: colors.textSecondary),
-              ),
+          : req == null
+          ? const AppEmptyState(
+              icon: LucideIcons.triangle_alert,
+              title: 'Não foi possível carregar',
+              description: 'Tente abrir a solicitação novamente.',
             )
           : Column(
               children: [
-                Expanded(child: _buildContent(colors, req!)),
+                Expanded(child: _buildContent(colors, req)),
                 if (match == null || match.bidValue == null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenH,
+                        0,
+                        AppSpacing.screenH,
+                        AppSpacing.md,
+                      ),
+                      child: AppPrimaryButton(
+                        label: 'Responder',
                         onPressed: () => _respond(context),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text('Responder'),
                       ),
                     ),
                   ),
@@ -109,96 +122,87 @@ class _MatchDetailsPageState extends State<MatchDetailsPage> {
         : null;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        AppSpacing.md,
+        AppSpacing.screenH,
+        AppSpacing.xl,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Cliente',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          AppCard(
+            child: Row(
+              children: [
+                Container(
+                  width: AppSize.categoryIcon,
+                  height: AppSize.categoryIcon,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    LucideIcons.user,
+                    size: 19,
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cliente',
+                        style: AppTypography.caption.copyWith(
+                          color: colors.textHint,
+                        ),
+                      ),
+                      Text(
+                        req.client.name ?? 'Cliente',
+                        style: AppTypography.title.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colors.surfaceLight,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  LucideIcons.user,
-                  size: 20,
-                  color: colors.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                req.client.name ?? 'Cliente',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           Text(
-            'Descrição do Serviço',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            'Descrição do serviço',
+            style: AppTypography.label.copyWith(color: colors.textSecondary),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             req.description,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 15,
-              height: 1.5,
-            ),
+            style: AppTypography.body.copyWith(color: colors.textPrimary),
           ),
           if (req.address != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               'Endereço',
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTypography.label.copyWith(color: colors.textSecondary),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: colors.surfaceLight,
-                borderRadius: BorderRadius.circular(10),
-              ),
+            const SizedBox(height: AppSpacing.xs),
+            AppCard(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     LucideIcons.map_pin,
                     size: 18,
-                    color: colors.textSecondary,
+                    color: colors.textHint,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      '${req.address!.street}, ${req.address!.number}\n${req.address!.city} - ${req.address!.state}',
-                      style: TextStyle(
+                      '${req.address!.street}, ${req.address!.number}\n'
+                      '${req.address!.city} - ${req.address!.state}',
+                      style: AppTypography.body.copyWith(
                         color: colors.textPrimary,
-                        fontSize: 14,
-                        height: 1.5,
                       ),
                     ),
                   ),
@@ -206,85 +210,55 @@ class _MatchDetailsPageState extends State<MatchDetailsPage> {
               ),
             ),
           ],
-          const SizedBox(height: 24),
-          Text(
-            'Informações da Solicitação',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+          const SizedBox(height: AppSpacing.xl),
+          AppListGroup(
+            header: 'Informações da solicitação',
+            children: [
+              AppListRow(title: 'Status', value: _statusLabel(req.status)),
+              AppListRow(
+                title: 'Urgência',
+                value: req.isEmergency ? 'Emergência' : 'Normal',
+              ),
+              if (req.scheduledAt != null)
+                AppListRow(
+                  title: 'Agendado para',
+                  value: _formatDate(req.scheduledAt!),
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
-          _infoRow(colors, 'Status', _statusLabel(req.status)),
-          _infoRow(
-            colors,
-            'Urgência',
-            req.isEmergency ? 'Emergência' : 'Normal',
-          ),
-          if (req.scheduledAt != null)
-            _infoRow(
-              colors,
-              'Agendado para',
-              '${req.scheduledAt!.day.toString().padLeft(2, '0')}/${req.scheduledAt!.month.toString().padLeft(2, '0')}/${req.scheduledAt!.year}',
-            ),
           if (match != null && match.bidValue != null) ...[
-            const SizedBox(height: 24),
-            Text(
-              'Sua Resposta',
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+            const SizedBox(height: AppSpacing.xl),
+            AppListGroup(
+              header: 'Sua resposta',
+              children: [
+                AppListRow(
+                  title: 'Valor proposto',
+                  value: 'R\$ ${match.bidValue!.toStringAsFixed(2)}',
+                ),
+                if (match.serviceType != null)
+                  AppListRow(
+                    title: 'Tipo',
+                    value: match.serviceType == 'IMMEDIATE'
+                        ? 'Atendimento imediato'
+                        : 'Serviço agendado',
+                  ),
+                if (match.proposedDate != null)
+                  AppListRow(
+                    title: 'Data proposta',
+                    value: _formatDate(match.proposedDate!),
+                  ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _infoRow(
-              colors,
-              'Valor proposto',
-              'R\$ ${match.bidValue!.toStringAsFixed(2)}',
-            ),
-            if (match.serviceType != null)
-              _infoRow(
-                colors,
-                'Tipo',
-                match.serviceType == 'IMMEDIATE'
-                    ? 'Atendimento Imediato'
-                    : 'Serviço Agendado',
-              ),
-            if (match.proposedDate != null)
-              _infoRow(
-                colors,
-                'Data proposta',
-                '${match.proposedDate!.day.toString().padLeft(2, '0')}/${match.proposedDate!.month.toString().padLeft(2, '0')}/${match.proposedDate!.year}',
-              ),
           ],
         ],
       ),
     );
   }
 
-  Widget _infoRow(AppColorsTheme colors, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(color: colors.textSecondary, fontSize: 14),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
   }
 
   String _statusLabel(String status) {
