@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 
+/// Card do último trabalho, ancorado acima do rodapé da home.
+///
+/// O espaço no topo é reservado para o badge que o pai sobrepõe ao card.
 class EarningsFloatingCard extends StatelessWidget {
-  final Map<String, String> lastService;
-  final VoidCallback onSeeAll;
-
   const EarningsFloatingCard({
     super.key,
     required this.lastService,
     required this.onSeeAll,
   });
+
+  final Map<String, String> lastService;
+  final VoidCallback onSeeAll;
 
   @override
   Widget build(BuildContext context) {
@@ -19,68 +25,49 @@ class EarningsFloatingCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(color: colors.border, width: AppSize.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Spacer for the badge from the parent
+          // Espaço para o badge sobreposto pelo widget pai.
           const SizedBox(height: 80),
           Text(
-            'ÚLTIMO TRABALHO',
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
-            ),
+            'Último trabalho'.toUpperCase(),
+            style: AppTypography.overline.copyWith(color: colors.textHint),
           ),
-
-          const Divider(height: 32),
-
-          // Service info
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: Divider(height: 1, color: colors.borderLight),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: Column(
               children: [
                 Text(
-                  '${lastService['startTime']} - ${lastService['service']}',
-                  style: TextStyle(
+                  '${lastService['startTime']} · ${lastService['service']}',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.title.copyWith(
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   lastService['clientName'] ?? '',
-                  style: TextStyle(color: colors.textSecondary, fontSize: 14),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // Footer
+          const SizedBox(height: AppSpacing.xs),
           TextButton(
             onPressed: onSeeAll,
-            child: Text(
-              'VER TODOS OS TRABALHOS',
-              style: TextStyle(
-                color: colors.themePrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('Ver todos os trabalhos'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
         ],
       ),
     );

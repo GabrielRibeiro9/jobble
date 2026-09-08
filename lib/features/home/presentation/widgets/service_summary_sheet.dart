@@ -1,158 +1,174 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
 
+/// Resumo do dia: total ganho em um pill de destaque e a lista dos serviços.
 class ServiceSummarySheet extends StatelessWidget {
-  final List<Map<String, String>> services;
-  final String totalEarnings;
-
   const ServiceSummarySheet({
     super.key,
     required this.services,
     required this.totalEarnings,
   });
 
+  final List<Map<String, String>> services;
+  final String totalEarnings;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final media = MediaQuery.of(context);
 
     return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 48),
+      padding: EdgeInsets.only(top: media.padding.top + AppSpacing.xxxl),
       child: Container(
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
+          ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(context),
             Padding(
-              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-              child: _buildTotalEarningsItem(context),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  AppCircleIconButton(
+                    icon: LucideIcons.chevron_down,
+                    tooltip: 'Fechar',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Resumo do dia',
+                      style: AppTypography.h3.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                // Total do dia em pill de acento: é o número que a pessoa
+                // abriu a folha para ver.
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    borderRadius: AppRadius.pillAll,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.wallet,
+                        size: 14,
+                        color: colors.onPrimary,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        totalEarnings,
+                        style: AppTypography.title.copyWith(
+                          color: colors.onPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
             Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomPadding),
-                itemCount: services.length,
-                separatorBuilder: (context, index) =>
-                    Divider(color: colors.border.withValues(alpha: 0.3), height: 1),
-                itemBuilder: (context, index) {
-                  return _buildServiceCard(context, services[index]);
-                },
-              ),
+              child: services.isEmpty
+                  ? const AppEmptyState(
+                      icon: LucideIcons.calendar_check,
+                      title: 'Nenhum serviço hoje',
+                      description:
+                          'Os trabalhos concluídos no dia aparecem aqui.',
+                    )
+                  : ListView.separated(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.xs,
+                        AppSpacing.lg,
+                        AppSpacing.md + media.padding.bottom,
+                      ),
+                      itemCount: services.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(height: 1, color: colors.borderLight),
+                      itemBuilder: (context, index) =>
+                          _ServiceRow(item: services[index]),
+                    ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: colors.border.withValues(alpha: 0.3)),
-        ),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Icon(
-                LucideIcons.chevron_down,
-                color: colors.textPrimary, // Changed from error (red) to black
-                size: 24,
-              ),
-            ),
-          ),
-          Text(
-            'RESUMO DO DIA',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+class _ServiceRow extends StatelessWidget {
+  const _ServiceRow({required this.item});
 
-  Widget _buildTotalEarningsItem(BuildContext context) {
-    final colors = context.colors;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surfaceLight,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(LucideIcons.wallet, color: colors.textSecondary, size: 14),
-            const SizedBox(width: 8),
-            Text(
-              totalEarnings,
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  final Map<String, String> item;
 
-  Widget _buildServiceCard(BuildContext context, Map<String, String> item) {
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                item['clientName'] ?? 'Cliente',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  item['clientName'] ?? 'Cliente',
+                  style: AppTypography.title.copyWith(
+                    color: colors.textPrimary,
+                  ),
                 ),
               ),
               Text(
                 item['value'] ?? '',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.title.copyWith(color: colors.textPrimary),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
-            '${item['startTime']} - ${item['endTime']}',
-            style: TextStyle(color: colors.textSecondary, fontSize: 13),
+            '${item['startTime']} — ${item['endTime']}',
+            style: AppTypography.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
-          const SizedBox(height: 4),
           Text(
             item['address'] ?? 'Sem endereço',
-            style: TextStyle(color: colors.textSecondary, fontSize: 12),
+            style: AppTypography.caption.copyWith(color: colors.textHint),
           ),
         ],
       ),

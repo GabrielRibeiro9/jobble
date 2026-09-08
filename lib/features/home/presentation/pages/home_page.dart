@@ -11,6 +11,9 @@ import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -328,26 +331,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                         child: Container(
-                          color: Colors.white.withValues(alpha: 0.25),
+                          color: context.colors.overlay,
                           child: _isOfflineByInactivity
-                              ? Builder(
-                                  builder: (context) {
-                                    final isDark =
-                                        Theme.of(context).brightness ==
-                                        Brightness.dark;
-                                    return Center(
-                                      child: Text(
-                                        'Aperte para entrar online',
-                                        style: TextStyle(
-                                          color: isDark
-                                              ? Colors.white
-                                              : Colors.black87,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                              ? Center(
+                                  child: Text(
+                                    'Toque para ficar online',
+                                    style: AppTypography.h3.copyWith(
+                                      color: context.colors.textPrimary,
+                                    ),
+                                  ),
                                 )
                               : null,
                         ),
@@ -368,9 +360,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Positioned.fill(
                   child: GestureDetector(
                     onTap: () => setState(() => _showEarningsSummary = false),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.4),
-                    ),
+                    child: ColoredBox(color: context.colors.overlay),
                   ),
                 ),
 
@@ -387,21 +377,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final pos = _currentPosition;
 
     if (_isLoadingLocation || pos == null) {
-      return Container(
+      return ColoredBox(
         color: context.colors.background,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AppLoader(),
-              const SizedBox(height: 16),
-              const Text(
-                'Carregando mapa...',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
+        child: const AppLoaderCentered(label: 'Carregando mapa...'),
       );
     }
 
@@ -429,8 +407,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   point: pos,
                   radius: state.raioAtuacao * 1000,
                   useRadiusInMeter: true,
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderColor: Colors.blue.withValues(alpha: 0.3),
+                  color: context.colors.primary.withValues(alpha: 0.10),
+                  borderColor: context.colors.primary.withValues(alpha: 0.45),
                   borderStrokeWidth: 2,
                 ),
               ],
@@ -450,11 +428,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : context.colors.themePrimary.withValues(
-                                  alpha: 0.15,
-                                ),
+                          color: context.colors.primary.withValues(
+                            alpha: 0.22,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
@@ -462,15 +438,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           width: 16,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: context.colors.themePrimary,
+                            color: context.colors.primary,
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
                           child: Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: context.colors.onPrimary,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -510,48 +486,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  /// Botão circular sobre o mapa. Usa a cor de alto contraste para se
+  /// destacar de qualquer tile, claro ou escuro.
   Widget _buildIconButton(IconData icon, {VoidCallback? onPressed}) {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    final colors = context.colors;
+    return SizedBox.square(
+      dimension: 48,
       child: Material(
-        color: Colors.transparent,
+        color: colors.inverse,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onPressed ?? () {},
-          customBorder: const CircleBorder(),
-          child: Icon(icon, color: Colors.black, size: 24),
+          child: Icon(icon, size: 22, color: colors.onInverse),
         ),
       ),
     );
   }
 
   Widget _buildFloatingButton(IconData icon, {Color? color}) {
+    final colors = context.colors;
     return Container(
-      width: 50,
-      height: 50,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.inverse,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: Icon(icon, color: color ?? Colors.black, size: 24),
+      child: Icon(icon, size: 22, color: color ?? colors.onInverse),
     );
   }
 
@@ -569,9 +531,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: context.colors.themePrimary,
+                color: context.colors.primary,
                 shape: BoxShape.circle,
-                border: Border.all(color: context.colors.surface, width: 2),
+                border: Border.all(color: context.colors.background, width: 2),
               ),
             ),
           ),
@@ -596,14 +558,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
         decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(25),
+          // Pill de alto contraste: precisa ler sobre qualquer tile do mapa.
+          color: context.colors.inverse,
+          borderRadius: AppRadius.pillAll,
         ),
         child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
           builder: (context, state) {
-            String earningsText = '0.00';
+            final colors = context.colors;
+            var earningsText = '0,00';
             if (state is HomeJobsLoaded) {
               earningsText = NumberFormat.currency(
                 symbol: '',
@@ -614,27 +581,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'R\$',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Text(
+                  r'R$',
+                  style: AppTypography.title.copyWith(color: colors.onInverse),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.xxs),
                 if (state is HomeJobsLoading)
-                  const Padding(
-                    padding: EdgeInsets.all(2),
-                    child: AppLoader(),
-                  )
+                  AppLoader(size: 18, color: colors.onInverse)
                 else
                   Text(
                     earningsText,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: AppTypography.numeric.copyWith(
+                      color: colors.onInverse,
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
               ],
@@ -648,98 +607,64 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildEarningsSummaryCard() {
     return Positioned(
       top: 60,
-      left: 16,
-      right: 16,
+      left: AppSpacing.md,
+      right: AppSpacing.md,
       child: BlocBuilder<HomeJobsBloc, HomeJobsState>(
         builder: (context, state) {
-          debugPrint('EarningsSummaryCard: Estado atual do Bloc: $state');
+          final colors = context.colors;
+
+          BoxDecoration cardDecoration() => BoxDecoration(
+            color: colors.surface,
+            borderRadius: AppRadius.lgAll,
+            border: Border.all(color: colors.border, width: AppSize.border),
+          );
 
           if (state is HomeJobsLoading) {
             return Container(
               height: 220,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: const Center(child: AppLoader()),
+              decoration: cardDecoration(),
+              child: const Center(child: AppLoader(size: 28)),
             );
           }
 
           if (state is HomeJobsError) {
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              decoration: cardDecoration(),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
+                      color: colors.error.withValues(alpha: 0.14),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.triangle_alert,
-                      color: Colors.red,
-                      size: 32,
+                      color: colors.error,
+                      size: 26,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Ops! Algo deu errado',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Não foi possível carregar',
+                    style: AppTypography.h3.copyWith(color: colors.textPrimary),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     state.message,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      height: 1.4,
+                    style: AppTypography.body.copyWith(
+                      color: colors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          _homeJobsBloc.add(GetCompletedJobsTodayRequested()),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Tentar novamente',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  const SizedBox(height: AppSpacing.xl),
+                  AppPrimaryButton(
+                    label: 'Tentar novamente',
+                    onPressed: () =>
+                        _homeJobsBloc.add(GetCompletedJobsTodayRequested()),
                   ),
                 ],
               ),
@@ -749,11 +674,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           if (state is! HomeJobsLoaded) {
             return Container(
               height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+              decoration: cardDecoration(),
+              child: Center(
+                child: Text(
+                  'Aguardando dados...',
+                  style: AppTypography.body.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
               ),
-              child: const Center(child: Text('Aguardando dados...')),
             );
           }
 
@@ -762,132 +691,85 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               : null;
 
           return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
+            decoration: cardDecoration(),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Top section with close button (left) and value (center)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Stack(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                  ),
+                  child: Row(
                     children: [
-                      // Close button (left)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _showEarningsSummary = false),
-                          child: const Icon(
-                            LucideIcons.x,
-                            size: 24,
-                            color: Colors.black54,
+                      AppCircleIconButton(
+                        icon: LucideIcons.x,
+                        tooltip: 'Fechar',
+                        onPressed: () =>
+                            setState(() => _showEarningsSummary = false),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            NumberFormat.currency(
+                              symbol: r'R$ ',
+                              locale: 'pt_BR',
+                            ).format(state.summary.totalEarnings),
+                            style: AppTypography.numeric.copyWith(
+                              color: colors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
-                      // Earnings display (centered)
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'R\$',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                NumberFormat.currency(
-                                  symbol: '',
-                                  locale: 'pt_BR',
-                                ).format(state.summary.totalEarnings),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      const SizedBox(width: AppSize.iconButton),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 8),
-                const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                Divider(height: 1, color: colors.borderLight),
                 Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   child: Column(
                     children: [
                       if (lastJob != null) ...[
                         Text(
-                          'Hoje às ${DateFormat('HH:mm').format(DateTime.parse(lastJob['updatedAt']))}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                          'Hoje às '
+                          '${DateFormat('HH:mm').format(DateTime.parse(lastJob['updatedAt']))}',
+                          style: AppTypography.h3.copyWith(
+                            color: colors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xxs),
                         Text(
-                          lastJob['description'] ?? 'Serviço Prestado',
+                          lastJob['description'] ?? 'Serviço prestado',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[500],
+                          style: AppTypography.body.copyWith(
+                            color: colors.textSecondary,
                           ),
                         ),
                       ] else ...[
-                        const Text(
+                        Text(
                           'Nenhum serviço prestado hoje',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
+                          style: AppTypography.h3.copyWith(
+                            color: colors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xxs),
                         Text(
                           'Fique online para começar a receber pedidos.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
+                          style: AppTypography.body.copyWith(
+                            color: colors.textSecondary,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 32),
-                      const Text(
-                        'Ver todos os ganhos',
-                        style: TextStyle(
-                          color: Color(0xFF276EF1),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const SizedBox(height: AppSpacing.lg),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('Ver todos os ganhos'),
                       ),
                     ],
                   ),
@@ -902,65 +784,40 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   // Removed _buildSummaryPanel and _buildServiceCard as they are now in ServiceSummarySheet
 
+  /// Pill de estado de operação. Online usa o acento; offline fica neutro.
   Widget _buildMinimalistToggle() {
+    final colors = context.colors;
+    final foreground = isOnline ? colors.onPrimary : colors.textSecondary;
+
     return GestureDetector(
       onTap: toggleOnline,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        duration: AppDuration.normal,
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
-          color: isOnline ? context.colors.themePrimary : Colors.grey[200],
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: isOnline ? colors.primary : colors.surfaceStrong,
+          borderRadius: AppRadius.pillAll,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isOnline) ...[
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: foreground,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 10),
-              const Text(
-                'ONLINE',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ] else ...[
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'OFFLINE',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              isOnline ? 'Online' : 'Offline',
+              style: AppTypography.title.copyWith(color: foreground),
+            ),
           ],
         ),
       ),
@@ -973,7 +830,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     const double cardHeight = 68.0;
 
     return Container(
-      margin: const EdgeInsets.all(16).copyWith(bottom: 100),
+      margin: const EdgeInsets.all(AppSpacing.md).copyWith(bottom: 110),
       child: SizedBox(
         height: cardHeight + (count - 1) * peekHeight,
         child: Stack(
@@ -1003,24 +860,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     Widget card = Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: colors.surface,
+        borderRadius: AppRadius.lgAll,
+        border: Border.all(color: colors.border, width: AppSize.border),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: AppSize.categoryIcon,
+              height: AppSize.categoryIcon,
               decoration: BoxDecoration(
                 color: colors.surfaceLight,
                 shape: BoxShape.circle,
@@ -1031,23 +881,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 color: colors.textSecondary,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 '${request.clientName} precisa dos seus serviços',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: AppTypography.body.copyWith(color: colors.textPrimary),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.xs),
             GestureDetector(
               onTap: () {
-                final r = _pendingRequests.isNotEmpty ? _pendingRequests[0] : null;
+                final r = _pendingRequests.isNotEmpty
+                    ? _pendingRequests[0]
+                    : null;
                 if (r != null && r.serviceRequestId.isNotEmpty) {
-                  _notificationDataSource.markAsRead(r.notificationId).catchError((_) {});
+                  _notificationDataSource
+                      .markAsRead(r.notificationId)
+                      .catchError((_) {});
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => MatchDetailsPage(
@@ -1059,16 +909,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 }
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
                 decoration: BoxDecoration(
-                  color: colors.themePrimary,
-                  borderRadius: BorderRadius.circular(8),
+                  color: colors.primary,
+                  borderRadius: AppRadius.pillAll,
                 ),
                 child: Text(
                   'Ver mais',
-                  style: TextStyle(
+                  style: AppTypography.label.copyWith(
                     color: colors.onPrimary,
-                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
