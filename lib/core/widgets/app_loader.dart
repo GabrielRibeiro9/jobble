@@ -1,50 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 
-class AppLoader extends StatefulWidget {
+import 'package:flutter_tcc/core/theme/app_colors.dart';
+
+/// Indicador de carregamento do app.
+///
+/// Um arco fino em lima: mesma linguagem de traço dos ícones e do acento de
+/// foco. A cor pode ser sobrescrita quando o loader fica sobre uma superfície
+/// de alto contraste (dentro da CTA branca, por exemplo).
+class AppLoader extends StatelessWidget {
+  const AppLoader({super.key, this.size = 20, this.color, this.strokeWidth = 2});
+
   final double size;
   final Color? color;
-
-  const AppLoader({super.key, this.size = 18, this.color});
-
-  @override
-  State<AppLoader> createState() => _AppLoaderState();
-}
-
-class _AppLoaderState extends State<AppLoader>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? Colors.grey[400];
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _controller.value * 3.14159 * 2,
-          child: child,
-        );
-      },
-      child: Icon(
-        LucideIcons.loader,
-        size: widget.size,
-        color: color,
+    return SizedBox.square(
+      dimension: size,
+      child: CircularProgressIndicator(
+        strokeWidth: strokeWidth,
+        color: color ?? context.colors.primary,
+        strokeCap: StrokeCap.round,
+      ),
+    );
+  }
+}
+
+/// Loader centralizado para estados de carregamento de tela inteira.
+class AppLoaderCentered extends StatelessWidget {
+  const AppLoaderCentered({super.key, this.label});
+
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AppLoader(size: 28),
+          if (label != null) ...[
+            const SizedBox(height: 12),
+            Text(label!, style: theme.textTheme.bodyMedium),
+          ],
+        ],
       ),
     );
   }

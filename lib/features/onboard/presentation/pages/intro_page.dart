@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/constants/app_assets.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/signup_page.dart';
 
@@ -44,68 +46,37 @@ class IntroPage extends StatelessWidget {
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 48),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenH,
+                0,
+                AppSpacing.screenH,
+                AppSpacing.xxxl,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  AppPrimaryButton(
+                    label: 'Já tenho uma conta',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
                         ),
-                      ),
-                      child: const Text(
-                        'Já tenho uma conta',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignupPage(),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppSecondaryButton(
+                    label: 'Criar nova conta',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignupPage(),
                         ),
-                        backgroundColor: Colors.transparent,
-                      ),
-                      child: const Text(
-                        'Criar nova conta',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),

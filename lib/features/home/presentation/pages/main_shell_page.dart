@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/widgets/main_bottom_nav_bar.dart';
-import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_tcc/features/schedule/presentation/pages/schedule_page.dart';
 import 'package:flutter_tcc/features/home/presentation/pages/inbox_page.dart';
@@ -35,11 +34,8 @@ class _MainShellPageState extends State<MainShellPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: _buildAppBar(colors),
+      appBar: _buildAppBar(),
       body: Stack(
         children: [
           IndexedStack(
@@ -62,70 +58,18 @@ class _MainShellPageState extends State<MainShellPage> {
     );
   }
 
-  PreferredSizeWidget? _buildAppBar(AppColorsTheme colors) {
-    switch (_currentIndex) {
-      case 1:
-        return AppBar(
-          backgroundColor: colors.surface,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Serviços',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
+  /// Título por aba. A Home traz o próprio cabeçalho sobre o mapa, então
+  /// nessa aba não há AppBar.
+  static const _titles = <int, String>{
+    1: 'Agenda',
+    2: 'Mensagens',
+    3: 'Configurações',
+    4: 'Perfil',
+  };
 
-        );
-      case 2:
-        return AppBar(
-          backgroundColor: colors.surface,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Notificações',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-
-        );
-      case 3:
-        return AppBar(
-          backgroundColor: colors.surface,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Configurações',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-
-        );
-      case 4:
-        return AppBar(
-          backgroundColor: colors.surface,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Perfil',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-
-        );
-      default:
-        return null;
-    }
+  PreferredSizeWidget? _buildAppBar() {
+    final title = _titles[_currentIndex];
+    if (title == null) return null;
+    return AppBar(title: Text(title));
   }
 }

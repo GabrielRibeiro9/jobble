@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/step_progress.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
@@ -153,32 +155,30 @@ class _SignupPageState extends State<SignupPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: context.colors.background,
         appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: context.colors.textPrimary,
-              size: 20,
-            ),
-            onPressed: _previousPage,
-          ),
-          centerTitle: true,
-          title: Text(
-            'CADASTRAR CONTA',
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
+          automaticallyImplyLeading: false,
+          titleSpacing: AppSpacing.screenH,
+          centerTitle: false,
+          title: Row(
+            children: [
+              AppCircleIconButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Voltar',
+                onPressed: _previousPage,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              StepProgress(totalSteps: 3, currentStep: _currentStep + 1),
+            ],
           ),
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenH,
+              AppSpacing.xl,
+              AppSpacing.screenH,
+              AppSpacing.xl,
+            ),
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
@@ -187,44 +187,27 @@ class _SignupPageState extends State<SignupPage> {
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (int page) {
-                    setState(() {
-                      _currentStep = page;
-                    });
+                    setState(() => _currentStep = page);
                   },
                   children: [
-                    Stack(
-                      children: [
-                        SignupStepEmail(
-                          nameController: _nameController,
-                          emailController: _emailController,
-                          passwordController: _passwordController,
-                          confirmPasswordController: _confirmPasswordController,
-                          onContinue: isLoading ? () {} : _onStep1Continue,
-                        ),
-                        if (isLoading && _currentStep == 0)
-                          const Center(child: CupertinoActivityIndicator()),
-                      ],
+                    SignupStepEmail(
+                      nameController: _nameController,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                      confirmPasswordController: _confirmPasswordController,
+                      onContinue: _onStep1Continue,
+                      isLoading: isLoading && _currentStep == 0,
                     ),
-                    Stack(
-                      children: [
-                        SignupStepOtp(
-                          email: _emailController.text,
-                          onContinue: isLoading ? (_) {} : _onStep2Continue,
-                        ),
-                        if (isLoading && _currentStep == 1)
-                          const Center(child: CupertinoActivityIndicator()),
-                      ],
+                    SignupStepOtp(
+                      email: _emailController.text,
+                      onContinue: _onStep2Continue,
+                      isLoading: isLoading && _currentStep == 1,
                     ),
-                    Stack(
-                      children: [
-                        SignupStepProfile(
-                          orgNameController: _orgNameController,
-                          descriptionController: _descriptionController,
-                          onFinish: isLoading ? () {} : _onFinish,
-                        ),
-                        if (isLoading && _currentStep == 2)
-                          const Center(child: CupertinoActivityIndicator()),
-                      ],
+                    SignupStepProfile(
+                      orgNameController: _orgNameController,
+                      descriptionController: _descriptionController,
+                      onFinish: _onFinish,
+                      isLoading: isLoading && _currentStep == 2,
                     ),
                   ],
                 );

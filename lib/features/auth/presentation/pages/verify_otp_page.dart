@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
@@ -73,45 +75,34 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: context.colors.background,
         appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: context.colors.textPrimary,
-              size: 20,
-            ),
-            onPressed: _onBack,
-          ),
-          centerTitle: true,
-          title: Text(
-            'VERIFICAR E-MAIL',
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+          leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: AppCircleIconButton(
+              icon: Icons.arrow_back_ios_new_rounded,
+              tooltip: 'Voltar',
+              onPressed: _onBack,
             ),
           ),
+          title: const Text('Verificar e-mail'),
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenH,
+              AppSpacing.xl,
+              AppSpacing.screenH,
+              AppSpacing.xl,
+            ),
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
 
-                return Stack(
-                  children: [
-                    SignupStepOtp(
-                      email: widget.email,
-                      onContinue: isLoading ? (_) {} : _onContinue,
-                    ),
-                    if (isLoading)
-                      const Center(child: CupertinoActivityIndicator()),
-                  ],
+                return SignupStepOtp(
+                  email: widget.email,
+                  onContinue: _onContinue,
+                  isLoading: isLoading,
                 );
               },
             ),

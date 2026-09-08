@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/auth_error_card.dart';
@@ -12,29 +15,20 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: context.colors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: context.colors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        centerTitle: true,
-        title: Text(
-          'ENTRAR',
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ),
+        title: const Text('Entrar'),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -44,9 +38,11 @@ class LoginPage extends StatelessWidget {
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenH,
+                      AppSpacing.md,
+                      AppSpacing.screenH,
+                      AppSpacing.xl,
                     ),
                     child: BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
@@ -54,26 +50,26 @@ class LoginPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (state is AuthFailure) ...[
-                              AuthErrorCard(message: state.message),
-                              const SizedBox(height: 32),
+                              AuthErrorCard(
+                                title: 'Falha ao entrar',
+                                message: state.message,
+                              ),
+                              const SizedBox(height: AppSpacing.xl),
                             ],
                             Text(
                               'Acesse sua conta',
-                              style: TextStyle(
-                                color: context.colors.textPrimary,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                              style: AppTypography.h1.copyWith(
+                                color: colors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppSpacing.sm),
                             Text(
                               'Entre para acompanhar seu trabalho e gerenciar seu negócio',
-                              style: TextStyle(
-                                color: context.colors.textSecondary,
-                                fontSize: 14,
+                              style: AppTypography.body.copyWith(
+                                color: colors.textSecondary,
                               ),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: AppSpacing.section),
                             const Expanded(child: LoginForm()),
                           ],
                         );

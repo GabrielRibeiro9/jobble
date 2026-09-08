@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
@@ -54,38 +55,24 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
         }
       },
       child: Scaffold(
-        backgroundColor: context.colors.background,
-        appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'COMPLETAR PERFIL',
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
+        appBar: AppBar(title: const Text('Completar perfil')),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenH,
+              AppSpacing.xl,
+              AppSpacing.screenH,
+              AppSpacing.xl,
+            ),
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
 
-                return Stack(
-                  children: [
-                    SignupStepProfile(
-                      orgNameController: _orgNameController,
-                      descriptionController: _descriptionController,
-                      onFinish: isLoading ? () {} : _onFinish,
-                    ),
-                    if (isLoading)
-                      const Center(child: CupertinoActivityIndicator()),
-                  ],
+                return SignupStepProfile(
+                  orgNameController: _orgNameController,
+                  descriptionController: _descriptionController,
+                  onFinish: _onFinish,
+                  isLoading: isLoading,
                 );
               },
             ),

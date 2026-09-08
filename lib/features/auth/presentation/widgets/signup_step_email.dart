@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/core/widgets/app_loader.dart';
 
-class SignupStepEmail extends StatefulWidget {
-  final TextEditingController nameController;
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final TextEditingController confirmPasswordController;
-  final VoidCallback onContinue;
-  final bool isLoading;
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_text_field.dart';
 
+class SignupStepEmail extends StatelessWidget {
   const SignupStepEmail({
     super.key,
     required this.nameController,
@@ -20,13 +15,12 @@ class SignupStepEmail extends StatefulWidget {
     this.isLoading = false,
   });
 
-  @override
-  State<SignupStepEmail> createState() => _SignupStepEmailState();
-}
-
-class _SignupStepEmailState extends State<SignupStepEmail> {
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+  final VoidCallback onContinue;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -36,166 +30,51 @@ class _SignupStepEmailState extends State<SignupStepEmail> {
         Expanded(
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Nome',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                AppTextField(
+                  controller: nameController,
+                  label: 'Nome completo',
+                  hint: 'Seu nome',
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.name],
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: widget.nameController,
-                  textCapitalization: TextCapitalization.words,
-                  style: TextStyle(color: context.colors.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Seu nome',
-                    filled: true,
-                    fillColor: context.colors.surface,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'E-mail',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: widget.emailController,
+                const SizedBox(height: AppSpacing.gap),
+                AppTextField(
+                  controller: emailController,
+                  label: 'E-mail',
+                  hint: 'exemplo@email.com',
                   keyboardType: TextInputType.emailAddress,
-                  style: TextStyle(color: context.colors.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'exemplo@email.com',
-                    filled: true,
-                    fillColor: context.colors.surface,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                  ),
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Senha',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                const SizedBox(height: AppSpacing.gap),
+                AppTextField(
+                  controller: passwordController,
+                  label: 'Senha',
+                  hint: 'Sua senha',
+                  obscureText: true,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: widget.passwordController,
-                  obscureText: _obscurePassword,
-                  style: TextStyle(color: context.colors.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Sua senha',
-                    filled: true,
-                    fillColor: context.colors.surface,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: context.colors.textSecondary,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Confirmar Senha',
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: widget.confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  style: TextStyle(color: context.colors.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Confirme sua senha',
-                    filled: true,
-                    fillColor: context.colors.surface,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.colors.borderLight),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                        color: context.colors.textSecondary,
-                      ),
-                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                    ),
-                  ),
+                const SizedBox(height: AppSpacing.gap),
+                AppTextField(
+                  controller: confirmPasswordController,
+                  label: 'Confirmar senha',
+                  hint: 'Confirme sua senha',
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => isLoading ? null : onContinue(),
                 ),
               ],
             ),
           ),
         ),
-        const Spacer(),
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton(
-            onPressed: widget.isLoading ? null : widget.onContinue,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.colors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 0,
-              disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.7),
-            ),
-            child: widget.isLoading
-                ? const AppLoader()
-                : Text(
-                    'Continuar',
-                    style: TextStyle(
-                      color: context.colors.onPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-          ),
+        const SizedBox(height: AppSpacing.xl),
+        AppPrimaryButton(
+          label: 'Continuar',
+          isLoading: isLoading,
+          onPressed: onContinue,
         ),
       ],
     );
