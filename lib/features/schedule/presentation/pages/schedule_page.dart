@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
+import 'package:flutter_tcc/core/widgets/app_status_chip.dart';
 
 enum AppointmentStatus { pending, confirmed, completed, cancelled }
 
@@ -144,99 +148,97 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
+  /// Faixa de dias. O dia selecionado é um bloco em lima; o dia de hoje leva
+  /// um ponto abaixo do número, para os dois estados serem distinguíveis
+  /// mesmo quando coincidem.
   Widget _buildWeekTracker() {
-    return Container(
-      color: context.colors.surface,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: _currentWeek.map((date) {
-            final isSelected = _isSameDay(date, _selectedDate);
-            final isToday = _isSameDay(date, DateTime.now());
+    final colors = context.colors;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedDate = DateTime(date.year, date.month, date.day);
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? context.colors.themePrimary : context.colors.surfaceLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected ? context.colors.themePrimary : context.colors.border,
-                    width: isSelected ? 0 : 1,
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _getShortWeekday(date.weekday).toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? context.colors.onPrimary : context.colors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      date.day.toString().padLeft(2, '0'),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? context.colors.onPrimary : context.colors.textPrimary,
-                      ),
-                    ),
-                    if (isToday) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: isSelected ? context.colors.onPrimary : context.colors.themePrimary,
-                          shape: BoxShape.circle,
-                        ),
-                      )
-                    ]
-                  ],
-                ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        AppSpacing.md,
+        AppSpacing.screenH,
+        AppSpacing.md,
+      ),
+      child: Row(
+        children: _currentWeek.map((date) {
+          final isSelected = _isSameDay(date, _selectedDate);
+          final isToday = _isSameDay(date, DateTime.now());
+          final foreground = isSelected
+              ? colors.onPrimary
+              : colors.textPrimary;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedDate = DateTime(date.year, date.month, date.day);
+              });
+            },
+            child: AnimatedContainer(
+              duration: AppDuration.normal,
+              curve: Curves.easeOut,
+              margin: const EdgeInsets.only(right: AppSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-            );
-          }).toList(),
-        ),
+              decoration: BoxDecoration(
+                color: isSelected ? colors.primary : colors.surface,
+                borderRadius: AppRadius.mdAll,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _getShortWeekday(date.weekday).toUpperCase(),
+                    style: AppTypography.overline.copyWith(
+                      color: isSelected
+                          ? colors.onPrimary
+                          : colors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    date.day.toString().padLeft(2, '0'),
+                    style: AppTypography.h3.copyWith(color: foreground),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isToday ? foreground : Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildAppointmentsList(List<Appointment> appointments) {
     if (appointments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.calendar_x, size: 64, color: context.colors.textHint),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum serviço agendado para este dia.',
-              style: TextStyle(
-                color: context.colors.textSecondary,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
+      return const AppEmptyState(
+        icon: LucideIcons.calendar_x,
+        title: 'Nada agendado',
+        description: 'Você não tem serviços marcados para este dia.',
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        0,
+        AppSpacing.screenH,
+        // Espaço para a barra de navegação flutuante.
+        120,
+      ),
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         return _buildAppointmentCard(appointments[index]);
@@ -245,48 +247,26 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   Widget _buildAppointmentCard(Appointment appointment) {
-    Color statusColor;
-    String statusText;
+    final colors = context.colors;
 
-    switch (appointment.status) {
-      case AppointmentStatus.pending:
-        statusColor = context.colors.warning;
-        statusText = 'Pendente';
-        break;
-      case AppointmentStatus.confirmed:
-        statusColor = context.colors.themePrimary;
-        statusText = 'Confirmado';
-        break;
-      case AppointmentStatus.completed:
-        statusColor = context.colors.success;
-        statusText = 'Concluído';
-        break;
-      case AppointmentStatus.cancelled:
-        statusColor = context.colors.error;
-        statusText = 'Cancelado';
-        break;
-    }
+    final (statusColor, statusText) = switch (appointment.status) {
+      AppointmentStatus.pending => (colors.warning, 'Pendente'),
+      AppointmentStatus.confirmed => (colors.primary, 'Confirmado'),
+      AppointmentStatus.completed => (colors.success, 'Concluído'),
+      AppointmentStatus.cancelled => (colors.error, 'Cancelado'),
+    };
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.borderLight, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: colors.surface,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
@@ -295,85 +275,40 @@ class _SchedulePageState extends State<SchedulePage> {
                   children: [
                     Text(
                       appointment.serviceName,
-                      style: TextStyle(
-                        color: context.colors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      style: AppTypography.title.copyWith(
+                        color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       appointment.clientName,
-                      style: TextStyle(
-                        color: context.colors.textSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
-                ),
-                child: Text(
-                  statusText.toUpperCase(),
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
+              const SizedBox(width: AppSpacing.xs),
+              AppStatusChip(label: statusText, color: statusColor),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(LucideIcons.clock, size: 16, color: context.colors.textSecondary),
-              const SizedBox(width: 8),
-              Text(
-                '${appointment.startTime} - ${appointment.endTime}',
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                appointment.price,
-                style: TextStyle(
-                  color: context.colors.success,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          Divider(height: 1, color: colors.borderLight),
+          const SizedBox(height: AppSpacing.md),
+          AppMetaRow(
+            icon: LucideIcons.clock,
+            text: '${appointment.startTime} — ${appointment.endTime}',
+            emphasized: true,
+            trailing: Text(
+              appointment.price,
+              style: AppTypography.title.copyWith(color: colors.textPrimary),
+            ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(LucideIcons.map_pin, size: 16, color: context.colors.textSecondary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  appointment.address,
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 13,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.xs),
+          AppMetaRow(
+            icon: LucideIcons.map_pin,
+            text: appointment.address,
           ),
         ],
       ),

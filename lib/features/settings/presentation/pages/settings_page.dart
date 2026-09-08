@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
+import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_list_row.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_event.dart';
 import 'package:flutter_tcc/features/settings/presentation/bloc/config_state.dart';
@@ -20,297 +25,178 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.colors.surface,
       appBar: AppBar(
-        backgroundColor: context.colors.surface,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: context.colors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Configurações e privacidade',
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: context.colors.border.withValues(alpha: 0.5),
-          ),
-        ),
+        title: const Text('Configurações'),
       ),
       body: ListView(
-        children: [
-          const SizedBox(height: 16),
-          _buildSectionHeader('CONTA'),
-          _buildActionTile(
-            icon: LucideIcons.user,
-            title: 'Gerenciar conta',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.lock,
-            title: 'Privacidade',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.shield_check,
-            title: 'Segurança e login',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.wallet_minimal,
-            title: 'Saldo',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.qr_code,
-            title: 'Código QR',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.share_2,
-            title: 'Compartilhar perfil',
-            onTap: () {},
-          ),
-
-          const SizedBox(height: 24),
-          _buildSectionHeader('CONTEÚDO E ATIVIDADE'),
-          _buildSwitchTile(
-            icon: LucideIcons.bell,
-            title: 'Notificações push',
-            value: _notificationsEnabled,
-            onChanged: (value) {
-              setState(() {
-                _notificationsEnabled = value;
-              });
-            },
-          ),
-          _buildActionTile(
-            icon: LucideIcons.languages,
-            title: 'Idioma do aplicativo',
-            trailingText: 'Português',
-            onTap: () {},
-          ),
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, themeMode) {
-              final bool isDark = themeMode == ThemeMode.dark;
-              return _buildSwitchTile(
-                icon: LucideIcons.moon,
-                title: 'Modo escuro',
-                value: isDark,
-                onChanged: (value) {
-                  context.read<ThemeCubit>().toggleTheme();
-                },
-              );
-            },
-          ),
-          _buildActionTile(
-            icon: LucideIcons.video,
-            title: 'Preferências de conteúdo',
-            onTap: () {},
-          ),
-          _buildActionTile(
-            icon: LucideIcons.megaphone,
-            title: 'Anúncios',
-            onTap: () {},
-          ),
-
-          const SizedBox(height: 24),
-          _buildSectionHeader('PARÂMETROS DE TRABALHO'),
-          BlocBuilder<ConfigBloc, ConfigState>(
-            builder: (context, state) {
-              return _buildSliderTile(
-                icon: LucideIcons.map_pin,
-                title: 'Raio de Atuação',
-                value: state.raioAtuacao,
-                min: 5,
-                max: 50,
-                label: '${state.raioAtuacao.toInt()} km',
-                onChanged: (value) {
-                  context.read<ConfigBloc>().add(UpdateRaioAtuacao(value));
-                },
-              );
-            },
-          ),
-          _buildActionTile(
-            icon: LucideIcons.briefcase,
-            title: 'Categorias de Serviços',
-            onTap: () {
-              // TODO: Navegar para tela de categorias
-            },
-          ),
-
-          const SizedBox(height: 32),
-          _buildSectionHeader('OUTROS'),
-          _buildActionTile(
-            icon: LucideIcons.log_out,
-            title: 'Sair da conta',
-            textColor: context.colors.error,
-            showChevron: false,
-            onTap: () {
-              // TODO: Lógica de logout
-            },
-          ),
-          const SizedBox(height: 48),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          color: context.colors.textPrimary,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenH,
+          AppSpacing.md,
+          AppSpacing.screenH,
+          AppSpacing.xxxl,
         ),
-      ),
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    String? trailingText,
-    Color? textColor,
-    bool showChevron = true,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-      leading: Icon(
-        icon,
-        color: textColor ?? context.colors.textPrimary,
-        size: 22,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: textColor ?? context.colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          if (trailingText != null)
-            Text(
-              trailingText,
-              style: TextStyle(
-                color: context.colors.textSecondary,
-                fontSize: 14,
+          AppListGroup(
+            header: 'Conta',
+            children: [
+              AppListRow(
+                icon: LucideIcons.user,
+                title: 'Gerenciar conta',
+                onTap: () {},
               ),
-            ),
-          if (showChevron) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right, color: context.colors.textHint, size: 20),
-          ],
-        ],
-      ),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-      leading: Icon(icon, color: context.colors.textPrimary, size: 22),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: context.colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: context.colors.onPrimary,
-            activeTrackColor: context.colors.themePrimary,
-            inactiveThumbColor: context.colors.onPrimary,
-            inactiveTrackColor: context.colors.border,
+              AppListRow(
+                icon: LucideIcons.lock,
+                title: 'Privacidade',
+                onTap: () {},
+              ),
+              AppListRow(
+                icon: LucideIcons.shield_check,
+                title: 'Segurança e login',
+                onTap: () {},
+              ),
+              AppListRow(
+                icon: LucideIcons.wallet_minimal,
+                title: 'Saldo',
+                onTap: () {},
+              ),
+              AppListRow(
+                icon: LucideIcons.qr_code,
+                title: 'Código QR',
+                onTap: () {},
+              ),
+              AppListRow(
+                icon: LucideIcons.share_2,
+                title: 'Compartilhar perfil',
+                onTap: () {},
+              ),
+            ],
           ),
-          const SizedBox(width: 0),
-          Icon(Icons.chevron_right, color: context.colors.textHint, size: 20),
+          const SizedBox(height: AppSpacing.xl),
+          AppListGroup(
+            header: 'Conteúdo e atividade',
+            children: [
+              AppListRow(
+                icon: LucideIcons.bell,
+                title: 'Notificações push',
+                trailing: Switch(
+                  value: _notificationsEnabled,
+                  onChanged: (value) {
+                    setState(() => _notificationsEnabled = value);
+                  },
+                ),
+              ),
+              AppListRow(
+                icon: LucideIcons.languages,
+                title: 'Idioma do aplicativo',
+                value: 'Português',
+                onTap: () {},
+              ),
+              BlocBuilder<ThemeCubit, ThemeMode>(
+                builder: (context, themeMode) {
+                  return AppListRow(
+                    icon: LucideIcons.moon,
+                    title: 'Modo escuro',
+                    trailing: Switch(
+                      value: themeMode == ThemeMode.dark,
+                      onChanged: (_) =>
+                          context.read<ThemeCubit>().toggleTheme(),
+                    ),
+                  );
+                },
+              ),
+              AppListRow(
+                icon: LucideIcons.video,
+                title: 'Preferências de conteúdo',
+                onTap: () {},
+              ),
+              AppListRow(
+                icon: LucideIcons.megaphone,
+                title: 'Anúncios',
+                onTap: () {},
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          AppListGroup(
+            header: 'Parâmetros de trabalho',
+            children: [
+              BlocBuilder<ConfigBloc, ConfigState>(
+                builder: (context, state) {
+                  return _RadiusRow(
+                    value: state.raioAtuacao,
+                    onChanged: (value) {
+                      context.read<ConfigBloc>().add(UpdateRaioAtuacao(value));
+                    },
+                  );
+                },
+              ),
+              AppListRow(
+                icon: LucideIcons.briefcase,
+                title: 'Categorias de serviços',
+                onTap: () {
+                  // TODO: navegar para a tela de categorias
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          AppListGroup(
+            children: [
+              AppListRow(
+                icon: LucideIcons.log_out,
+                title: 'Sair da conta',
+                destructive: true,
+                onTap: () {
+                  // TODO: encerrar sessão
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSliderTile({
-    required IconData icon,
-    required String title,
-    required double value,
-    required double min,
-    required double max,
-    required String label,
-    required ValueChanged<double> onChanged,
-  }) {
+/// Raio de atuação: a linha mostra o valor e o slider fica logo abaixo, dentro
+/// do mesmo bloco, para o controle ficar junto do rótulo que ele altera.
+class _RadiusRow extends StatelessWidget {
+  const _RadiusRow({required this.value, required this.onChanged});
+
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 0,
-          ),
-          leading: Icon(icon, color: context.colors.textPrimary, size: 22),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
+        AppListRow(
+          icon: LucideIcons.map_pin,
+          title: 'Raio de atuação',
           trailing: Text(
-            label,
-            style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
+            '${value.toInt()} km',
+            style: AppTypography.title.copyWith(color: colors.primary),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: context.colors.themePrimary,
-              inactiveTrackColor: context.colors.border,
-              thumbColor: context.colors.onPrimary,
-              overlayColor: context.colors.themePrimary.withValues(alpha: 0.1),
-              trackHeight: 3,
-            ),
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.sm,
+            0,
+            AppSpacing.sm,
+            AppSpacing.xs,
           ),
+          child: Slider(value: value, min: 5, max: 50, onChanged: onChanged),
         ),
       ],
     );

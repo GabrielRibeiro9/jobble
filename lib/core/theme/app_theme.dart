@@ -307,6 +307,14 @@ abstract final class AppTheme {
         ),
       ),
 
+      sliderTheme: SliderThemeData(
+        activeTrackColor: colors.primary,
+        inactiveTrackColor: colors.surfaceStrong,
+        thumbColor: colors.primary,
+        overlayColor: colors.primary.withValues(alpha: 0.14),
+        trackHeight: 3,
+      ),
+
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: colors.primary,
         selectionColor: colors.primary.withValues(alpha: 0.28),

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
 import 'package:flutter_tcc/core/network/dio_client.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:flutter_tcc/features/notifications/data/datasources/notification_remote_data_source.dart';
@@ -108,13 +111,24 @@ class _InboxPageState extends State<InboxPage> {
     }
 
     if (_notifications.isEmpty) {
-      return _buildEmptyState(colors);
+      return const AppEmptyState(
+        icon: LucideIcons.inbox,
+        title: 'Nenhuma notificação',
+        description:
+            'Avisos de novos serviços e propostas aceitas aparecem aqui.',
+      );
     }
 
     final grouped = _groupByDay(_notifications);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        AppSpacing.xs,
+        AppSpacing.screenH,
+        // Espaço para a barra de navegação flutuante.
+        120,
+      ),
       children: [
         for (final group in grouped) ...[
           _buildDayHeader(colors, group.date),
@@ -156,14 +170,15 @@ class _InboxPageState extends State<InboxPage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.xs,
+      ),
       child: Text(
-        label,
-        style: TextStyle(
-          color: colors.textSecondary,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        label.toUpperCase(),
+        style: AppTypography.overline.copyWith(color: colors.textHint),
       ),
     );
   }
@@ -172,6 +187,7 @@ class _InboxPageState extends State<InboxPage> {
     final hour = item.dateTime.hour.toString().padLeft(2, '0');
     final minute = item.dateTime.minute.toString().padLeft(2, '0');
     final timeLabel = '${hour}h$minute';
+    final isUnread = item.isUnread != false;
 
     return GestureDetector(
       onTap: () {
@@ -187,71 +203,63 @@ class _InboxPageState extends State<InboxPage> {
           );
         }
       },
-      child: Opacity(
-        opacity: item.isUnread == false ? 0.5 : 1.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: AppRadius.lgAll,
+          ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: AppSize.categoryIcon,
+                height: AppSize.categoryIcon,
                 decoration: BoxDecoration(
                   color: colors.surfaceLight,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(item.icon, size: 18, color: colors.textSecondary),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            style: TextStyle(
-                              color: colors.textPrimary,
-                              fontSize: 14,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          timeLabel,
-                          style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                child: Text(
+                  item.title,
+                  style: AppTypography.body.copyWith(
+                    color: isUnread ? colors.textPrimary : colors.textSecondary,
+                    fontWeight: isUnread ? FontWeight.w500 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    timeLabel,
+                    style: AppTypography.caption.copyWith(
+                      color: colors.textHint,
+                    ),
+                  ),
+                  if (isUnread) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    // Ponto em lima: marca de não lida, no lugar de esmaecer
+                    // as já lidas.
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: colors.primary,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ],
-                ),
+                ],
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(AppColorsTheme colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 16),
-          Text(
-            'Nenhuma notificação por enquanto',
-            style: TextStyle(color: colors.textSecondary, fontSize: 14),
-          ),
-        ],
       ),
     );
   }
