@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tcc/core/config/app_config.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
@@ -160,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     onTap: () => _showProjectDetail(project),
                     child: photoUrl != null
                         ? Image.network(
-                            'http://10.0.2.2:3333/uploads/$photoUrl',
+                            AppConfig.uploadUrl(photoUrl),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 _buildPlaceholder(),
@@ -311,7 +312,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          'http://10.0.2.2:3333/uploads/$photoUrl',
+                          AppConfig.uploadUrl(photoUrl),
                           width: double.infinity,
                           height: 250,
                           fit: BoxFit.cover,

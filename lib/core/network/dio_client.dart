@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_tcc/core/config/app_config.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 
 class DioClient {
   late final Dio _dio;
   final TokenService tokenService;
 
-  static const String baseUrl = 'jobble-api.up.railway.app';
-  // static const String baseUrl = 'http://10.0.2.2:3333';
+  static const String baseUrl = AppConfig.apiBaseUrl;
 
   DioClient({required this.tokenService}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: AppConfig.connectTimeout,
+        receiveTimeout: AppConfig.receiveTimeout,
         headers: {'Accept': 'application/json'},
       ),
     );
@@ -39,9 +39,11 @@ class DioClient {
       ),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+    if (AppConfig.enableHttpLogs) {
+      _dio.interceptors.add(
+        LogInterceptor(requestBody: true, responseBody: true),
+      );
+    }
   }
 
   Dio get dio => _dio;
