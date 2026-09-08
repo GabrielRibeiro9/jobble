@@ -8,8 +8,11 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_list_row.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
+import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 import 'package:flutter_tcc/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:flutter_tcc/features/profile/presentation/pages/edit_field_page.dart';
@@ -64,13 +67,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _showPickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: context.colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -97,68 +96,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildPropertyRow(String title, String value, VoidCallback? onTap) {
-    final colors = context.colors;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: colors.border.withValues(alpha: 0.3)),
-            bottom: BorderSide(color: colors.border.withValues(alpha: 0.3)),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-              Flexible(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.end,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: context.colors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.colors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-        title: const Text('Editar Perfil'),
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: context.colors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        title: const Text('Editar perfil'),
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -177,94 +128,113 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
 
           return ListView(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenH,
+              AppSpacing.section,
+              AppSpacing.screenH,
+              AppSpacing.section,
+            ),
             children: [
-              const SizedBox(height: 32),
               Center(
                 child: GestureDetector(
                   onTap: _uploading ? null : _showPickerOptions,
-                  child: Stack(
-                    children: [
-                      ProfileAvatar(
-                        size: 100,
-                        imageUrl: avatarUrl,
-                        fallbackName: orgName,
-                      ),
-                      if (!_uploading)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Color(0x66FFFFFF),
-                              shape: BoxShape.circle,
+                  child: SizedBox(
+                    width: 104,
+                    height: 104,
+                    child: Stack(
+                      children: [
+                        ProfileAvatar(
+                          size: 104,
+                          imageUrl: avatarUrl,
+                          fallbackName: orgName,
+                        ),
+                        if (_uploading)
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: context.colors.overlay,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(child: AppLoader()),
                             ),
-                            child: Center(
+                          )
+                        else
+                          // Badge de edição em lima, encostado na borda do
+                          // avatar: a única marca de acento da tela.
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: context.colors.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: context.colors.background,
+                                  width: 3,
+                                ),
+                              ),
                               child: Icon(
-                                Icons.edit,
-                                size: 28,
-                                color: Colors.black,
+                                Icons.photo_camera_rounded,
+                                size: 16,
+                                color: context.colors.onPrimary,
                               ),
                             ),
                           ),
-                        ),
-                      if (_uploading)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.black38,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: AppLoader(),
-                            ),
-                          ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildPropertyRow(
-                'Organização',
-                orgName,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditFieldPage(
-                        title: 'Editar Organização',
-                        fieldLabel: 'Nome da organização',
-                        currentValue: orgName,
-                        onSave: (value) async {
-                          await _dataSource.updateOrganizationName(value);
-                          if (!context.mounted) return;
-                          context.read<AuthBloc>().add(UserRequested());
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              _buildPropertyRow('Email', email, null),
-              _buildPropertyRow(
-                'Nome',
-                userName,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditFieldPage(
-                        title: 'Editar Nome',
-                        fieldLabel: 'Nome',
-                        currentValue: userName,
-                        onSave: (value) async {
-                          await _dataSource.updateUserName(value);
-                          if (!context.mounted) return;
-                          context.read<AuthBloc>().add(UserRequested());
-                        },
-                      ),
-                    ),
-                  );
-                },
+              const SizedBox(height: AppSpacing.section),
+              AppListGroup(
+                header: 'Dados da conta',
+                children: [
+                  AppListRow(
+                    title: 'Organização',
+                    value: orgName,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditFieldPage(
+                            title: 'Editar organização',
+                            fieldLabel: 'Nome da organização',
+                            currentValue: orgName,
+                            onSave: (value) async {
+                              await _dataSource.updateOrganizationName(value);
+                              if (!context.mounted) return;
+                              context.read<AuthBloc>().add(UserRequested());
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  AppListRow(
+                    title: 'Nome',
+                    value: userName,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditFieldPage(
+                            title: 'Editar nome',
+                            fieldLabel: 'Nome',
+                            currentValue: userName,
+                            onSave: (value) async {
+                              await _dataSource.updateUserName(value);
+                              if (!context.mounted) return;
+                              context.read<AuthBloc>().add(UserRequested());
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  AppListRow(title: 'E-mail', value: email),
+                ],
               ),
             ],
           );

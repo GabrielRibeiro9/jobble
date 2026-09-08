@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/core/widgets/app_loader.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_text_field.dart';
 
 class EditFieldPage extends StatefulWidget {
   final String title;
@@ -64,63 +66,40 @@ class _EditFieldPageState extends State<EditFieldPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: context.colors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.colors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+        leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: AppCircleIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Voltar',
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: Text(widget.title),
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: context.colors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenH,
+          AppSpacing.xl,
+          AppSpacing.screenH,
+          AppSpacing.xl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            AppTextField(
               controller: _controller,
-              decoration: InputDecoration(
-                labelText: widget.fieldLabel,
-                labelStyle: TextStyle(color: context.colors.textSecondary),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: context.colors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: context.colors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: context.colors.primary),
-                ),
-              ),
-              style: TextStyle(color: context.colors.textPrimary),
+              label: widget.fieldLabel,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _saving ? null : _save(),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _saving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.colors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: _saving
-                    ? const AppLoader()
-                    : const Text('Salvar'),
-              ),
+            const SizedBox(height: AppSpacing.xl),
+            AppPrimaryButton(
+              label: 'Salvar',
+              isLoading: _saving,
+              onPressed: _save,
             ),
           ],
         ),

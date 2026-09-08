@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_text_field.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_tcc/core/widgets/app_loader.dart';
 import 'package:flutter_tcc/features/profile/presentation/widgets/tag_input.dart';
 
 class OrganizationSettingsPage extends StatefulWidget {
@@ -77,21 +79,17 @@ class _OrganizationSettingsPageState extends State<OrganizationSettingsPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: context.colors.background,
         appBar: AppBar(
-          backgroundColor: context.colors.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: context.colors.textPrimary),
-            onPressed: () => Navigator.pop(context),
+          leadingWidth: AppSize.iconButton + AppSpacing.md + AppSpacing.xs,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: AppCircleIconButton(
+              icon: Icons.arrow_back_ios_new_rounded,
+              tooltip: 'Voltar',
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
           title: const Text('Parâmetros'),
-          centerTitle: true,
-          titleTextStyle: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
         ),
         body: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
@@ -99,79 +97,35 @@ class _OrganizationSettingsPageState extends State<OrganizationSettingsPage> {
 
             return SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenH,
+                  AppSpacing.xl,
+                  AppSpacing.screenH,
+                  AppSpacing.xl,
+                ),
                 child: Form(
                   key: _formKey,
                   child: SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          'Tags de serviços',
-                          style: TextStyle(
-                            color: context.colors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                        AppFieldGroup(
+                          label: 'Tags de serviços',
+                          helper:
+                              'Digite uma tag e pressione Enter para adicionar.',
+                          child: TagInput(
+                            tags: _tags,
+                            onTagsChanged: (tags) {
+                              setState(() => _tags = tags);
+                            },
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        TagInput(
-                          tags: _tags,
-                          onTagsChanged: (tags) {
-                            setState(() => _tags = tags);
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Digite uma tag e pressione Enter para adicionar',
-                          style: TextStyle(
-                            color: context.colors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Descrição profissional',
-                          style: TextStyle(
-                            color: context.colors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.xl),
+                        AppTextField(
                           controller: _bioController,
-                          style: TextStyle(
-                            color: context.colors.textPrimary,
-                            fontSize: 14,
-                          ),
+                          label: 'Descrição profissional',
+                          hint: 'Descreva os serviços da sua organização...',
                           maxLines: 6,
-                          decoration: InputDecoration(
-                            hintText: 'Descreva os serviços da sua organização...',
-                            hintStyle: TextStyle(
-                              color: context.colors.textSecondary.withValues(alpha: 0.5),
-                            ),
-                            filled: true,
-                            fillColor: context.colors.surface,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: context.colors.border.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: context.colors.primary,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.all(16),
-                          ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Adicione uma descrição';
@@ -179,24 +133,11 @@ class _OrganizationSettingsPageState extends State<OrganizationSettingsPage> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: isLoading ? null : _onSave,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.colors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: isLoading
-                                ? const AppLoader()
-                                : const Text('Salvar'),
-                          ),
+                        const SizedBox(height: AppSpacing.section),
+                        AppPrimaryButton(
+                          label: 'Salvar',
+                          isLoading: isLoading,
+                          onPressed: _onSave,
                         ),
                       ],
                     ),

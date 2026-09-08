@@ -5,8 +5,12 @@ import 'package:flutter_tcc/core/config/app_config.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
-import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
+import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/features/profile/data/models/project_model.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 import 'package:flutter_tcc/features/profile/data/datasources/profile_remote_data_source.dart';
@@ -38,51 +42,32 @@ class _ProfilePageState extends State<ProfilePage> {
 
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenH,
+            ),
             child: Row(
               children: [
                 Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditProfilePage(),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colors.surfaceLight,
-                      foregroundColor: context.colors.textSecondary,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: AppSecondaryButton(
+                    label: 'Editar perfil',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
                       ),
                     ),
-                    child: const Text('Editar Perfil'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const OrganizationSettingsPage(),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colors.surfaceLight,
-                      foregroundColor: context.colors.textSecondary,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: AppSecondaryButton(
+                    label: 'Parâmetros',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrganizationSettingsPage(),
                       ),
                     ),
-                    child: const Text('Parâmetros'),
                   ),
                 ),
               ],
@@ -92,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 String matches = '0';
@@ -133,14 +118,14 @@ class _ProfilePageState extends State<ProfilePage> {
               final projects = snapshot.data ?? [];
 
               if (projects.isEmpty) {
-                return SliverToBoxAdapter(
+                return const SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Text(
-                        'Nenhum projeto ainda',
-                        style: TextStyle(color: context.colors.textSecondary),
-                      ),
+                    height: 260,
+                    child: AppEmptyState(
+                      icon: Icons.photo_library_outlined,
+                      title: 'Nenhum projeto ainda',
+                      description:
+                          'Os trabalhos que você publicar aparecem aqui.',
                     ),
                   ),
                 );
@@ -186,19 +171,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildStat(String value, String label) {
+    final colors = context.colors;
     return Column(
       children: [
         Text(
           value,
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
+          style: AppTypography.numeric.copyWith(
+            color: colors.textPrimary,
+            fontSize: 20,
           ),
         ),
+        const SizedBox(height: AppSpacing.xxs),
         Text(
           label,
-          style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
+          style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
         ),
       ],
     );
@@ -218,52 +204,44 @@ class _ProfilePageState extends State<ProfilePage> {
           email = state.user!.email;
         }
 
-        return Container(
-          color: context.colors.background,
-          child: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: 86,
-                  height: 86,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: ProfileAvatar(
-                    size: 82,
-                    imageUrl: avatarUrl,
-                    fallbackName: name,
+        final colors = context.colors;
+
+        return SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.md),
+              ProfileAvatar(
+                size: 88,
+                imageUrl: avatarUrl,
+                fallbackName: name,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: AppTypography.h1.copyWith(color: colors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              // E-mail em pill de superfície: informação secundária, contida.
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs + 2,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.surfaceLight,
+                  borderRadius: AppRadius.pillAll,
+                ),
+                child: Text(
+                  email,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: colors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  name,
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.colors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    email,
-                    style: TextStyle(
-                      color: context.colors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
           ),
         );
       },
@@ -273,11 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showProjectDetail(ProjectModel project) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: context.colors.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
       builder: (context) {
         return DraggableScrollableSheet(
           initialChildSize: 0.75,
@@ -293,24 +267,13 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 12),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: context.colors.textSecondary.withValues(
-                          alpha: 0.3,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
                   if (photoUrl != null)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.lgAll,
                         child: Image.network(
                           AppConfig.uploadUrl(photoUrl),
                           width: double.infinity,
@@ -325,37 +288,32 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (project.title != null)
                           Text(
                             project.title!,
-                            style: TextStyle(
+                            style: AppTypography.h2.copyWith(
                               color: context.colors.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         if (project.completionDate != null) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xxs),
                           Text(
                             project.completionDate!,
-                            style: TextStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               color: context.colors.textSecondary,
-                              fontSize: 13,
                             ),
                           ),
                         ],
                         if (project.description != null) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             project.description!,
-                            style: TextStyle(
+                            style: AppTypography.body.copyWith(
                               color: context.colors.textSecondary,
-                              fontSize: 14,
-                              height: 1.5,
                             ),
                           ),
                         ],

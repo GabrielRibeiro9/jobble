@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 
 class TagInput extends StatefulWidget {
   final List<String> tags;
@@ -82,74 +84,85 @@ class _TagInputState extends State<TagInput> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       decoration: BoxDecoration(
-        color: context.colors.surface,
-        border: Border.all(
-          color: context.colors.border.withValues(alpha: 0.3),
-        ),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border, width: AppSize.border),
+        borderRadius: AppRadius.mdAll,
       ),
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       child: Focus(
         focusNode: _focusNode,
         onKeyEvent: _onKeyEvent,
         child: SingleChildScrollView(
           child: Wrap(
-            spacing: 6,
-            runSpacing: 4,
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               for (final tag in widget.tags)
+                // Chip removível: pill em lima sobre superfície, como qualquer
+                // outro elemento selecionado do sistema.
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    AppSpacing.xxs + 2,
+                    AppSpacing.xs,
+                    AppSpacing.xxs + 2,
                   ),
                   decoration: BoxDecoration(
-                    color: context.colors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: colors.primary,
+                    borderRadius: AppRadius.pillAll,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         tag,
-                        style: TextStyle(
-                          color: context.colors.primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                        style: AppTypography.label.copyWith(
+                          color: colors.onPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xxs),
                       GestureDetector(
                         onTap: () => _removeTag(tag),
                         child: Icon(
-                          Icons.close,
-                          size: 16,
-                          color: context.colors.primary,
+                          Icons.close_rounded,
+                          size: 15,
+                          color: colors.onPrimary,
                         ),
                       ),
                     ],
                   ),
                 ),
               SizedBox(
-                width: 120,
+                width: 140,
                 child: TextField(
                   controller: _controller,
+                  cursorColor: colors.primary,
                   decoration: InputDecoration(
-                    hintText: widget.tags.isEmpty ? 'Digite e pressione Enter' : 'Adicionar...',
-                    hintStyle: TextStyle(
-                      color: context.colors.textSecondary.withValues(alpha: 0.5),
-                      fontSize: 14,
+                    hintText: widget.tags.isEmpty
+                        ? 'Digite e pressione Enter'
+                        : 'Adicionar...',
+                    hintStyle: AppTypography.body.copyWith(
+                      color: colors.textHint,
                     ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
+                    ),
                     isDense: true,
                   ),
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 14,
+                  style: AppTypography.body.copyWith(
+                    color: colors.textPrimary,
                   ),
                   onSubmitted: _onTextFieldSubmitted,
                   onChanged: _onTextFieldChanged,

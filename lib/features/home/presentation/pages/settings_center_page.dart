@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_card.dart';
+import 'package:flutter_tcc/core/widgets/app_list_row.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 
 class SettingsCenterPage extends StatelessWidget {
@@ -9,238 +14,172 @@ class SettingsCenterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        AppSpacing.md,
+        AppSpacing.screenH,
+        // Espaço para a barra de navegação flutuante não cobrir o conteúdo.
+        120,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 10),
-          _buildActionGrid(context),
-          const SizedBox(height: 40),
-          _buildSectionHeader(context, 'Central de Segurança'),
-          const SizedBox(height: 16),
-          _buildSecurityCards(context),
-          const SizedBox(height: 40),
-          _buildSectionHeader(context, 'Benefícios'),
-          const SizedBox(height: 40),
-          _buildBottomLink(
-            context,
-            icon: LucideIcons.circle_question_mark,
-            title: 'Central de ajuda',
+          _ActionRow(
+            items: [
+              (
+                icon: LucideIcons.settings_2,
+                title: 'Ajustes de atuação',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                ),
+              ),
+              (
+                icon: LucideIcons.history,
+                title: 'Histórico de serviços',
+                onTap: null,
+              ),
+              (icon: LucideIcons.gauge, title: 'Meus ganhos', onTap: null),
+            ],
           ),
-          const SizedBox(height: 12),
-          _buildBottomLink(
-            context,
-            icon: LucideIcons.log_out,
-            title: 'Sair do App',
-            subtitle: 'Versão 1.0.0',
-            onTap: () {
-              // Handle logout
-            },
+          const SizedBox(height: AppSpacing.section),
+          const AppSectionHeader(title: 'Central de segurança'),
+          const SizedBox(height: AppSpacing.md),
+          const Row(
+            children: [
+              Expanded(
+                child: _SecurityCard(
+                  title: 'Trocar senha',
+                  subtitle: 'Alterar sua senha de acesso',
+                  icon: LucideIcons.lock,
+                ),
+              ),
+              SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _SecurityCard(
+                  title: 'Autenticação em 2 fatores',
+                  subtitle: 'Camada extra de segurança',
+                  icon: LucideIcons.shield,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: AppSpacing.section),
+          AppListGroup(
+            children: [
+              AppListRow(
+                title: 'Central de ajuda',
+                icon: LucideIcons.circle_question_mark,
+                onTap: () {},
+              ),
+              AppListRow(
+                title: 'Sair do app',
+                subtitle: 'Versão 1.0.0',
+                icon: LucideIcons.log_out,
+                destructive: true,
+                onTap: () {
+                  // TODO: encerrar sessão
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildActionGrid(BuildContext context) {
+/// Atalhos em cards quadrados que rolam na horizontal.
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.items});
+
+  final List<({IconData icon, String title, VoidCallback? onTap})> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       child: Row(
         children: [
-          _buildActionCard(
-            context,
-            LucideIcons.settings_2,
-            'Ajustes de\nAtuação',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
-            },
-          ),
-          const SizedBox(width: 12),
-          _buildActionCard(
-            context,
-            LucideIcons.history,
-            'Histórico de\nServiços',
-          ),
-          const SizedBox(width: 12),
-          _buildActionCard(context, LucideIcons.gauge, 'Meus\nGanhos'),
+          for (var i = 0; i < items.length; i++) ...[
+            SizedBox(
+              width: 118,
+              height: 118,
+              child: AppCard(
+                color: colors.surface,
+                onTap: items[i].onTap,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(items[i].icon, size: 22, color: colors.textPrimary),
+                    const Spacer(),
+                    Text(
+                      items[i].title,
+                      style: AppTypography.label.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (i != items.length - 1) const SizedBox(width: AppSpacing.sm),
+          ],
         ],
       ),
     );
   }
+}
 
-  Widget _buildActionCard(
-    BuildContext context,
-    IconData icon,
-    String title, {
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 110,
-        height: 110,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: context.colors.surfaceLight,
-          borderRadius: BorderRadius.circular(12),
-        ),
+class _SecurityCard extends StatelessWidget {
+  const _SecurityCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return SizedBox(
+      height: 148,
+      child: AppCard(
+        onTap: () {},
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: context.colors.textPrimary, size: 24),
-            const Spacer(),
             Text(
               title,
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.2,
-              ),
+              style: AppTypography.title.copyWith(color: colors.textPrimary),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: context.colors.textSecondary,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Icon(
-          LucideIcons.chevron_right,
-          color: context.colors.textSecondary,
-          size: 16,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSecurityCards(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildInfoCard(
-            context,
-            'Trocar Senha',
-            'Alterar sua senha de acesso',
-            LucideIcons.lock,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildInfoCard(
-            context,
-            'Autenticação em\n2 Fatores',
-            'Adicionar camada extra de segurança',
-            LucideIcons.shield,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-Widget _buildInfoCard(
-  BuildContext context,
-  String title,
-  String subtitle,
-  IconData? icon,
-) {
-  return Container(
-    height: 140,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: context.colors.surfaceLight,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const Spacer(),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                subtitle,
-                style: TextStyle(
-                  color: context.colors.textSecondary,
-                  fontSize: 13,
-                  height: 1.2,
-                ),
-              ),
-            ),
-            if (icon != null)
-              Icon(icon, color: context.colors.textPrimary, size: 20),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildBottomLink(
-  BuildContext context, {
-  required IconData icon,
-  required String title,
-  String? subtitle,
-  VoidCallback? onTap,
-}) {
-  return InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: context.colors.textPrimary, size: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const Spacer(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (subtitle != null)
-                  Text(
+                Expanded(
+                  child: Text(
                     subtitle,
-                    style: TextStyle(
-                      color: context.colors.textSecondary,
-                      fontSize: 13,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: colors.textSecondary,
                     ),
                   ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(icon, size: 18, color: colors.textHint),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

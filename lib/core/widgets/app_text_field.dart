@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 
 /// Campo de texto do design system: contorno discreto, rótulo flutuante
 /// recortado na borda e foco em lima.
@@ -114,6 +115,45 @@ class _AppTextFieldState extends State<AppTextField> {
         suffixIcon: suffix,
         constraints: const BoxConstraints(minHeight: AppSize.field),
       ),
+    );
+  }
+}
+
+/// Rótulo + controle + texto de apoio, para controles que não são
+/// [AppTextField] e portanto não têm rótulo flutuante próprio (seletor de
+/// tags, seletor de data, toggles). Mantém o mesmo ritmo vertical dos campos.
+class AppFieldGroup extends StatelessWidget {
+  const AppFieldGroup({
+    super.key,
+    required this.label,
+    required this.child,
+    this.helper,
+  });
+
+  final String label;
+  final Widget child;
+  final String? helper;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.label.copyWith(color: colors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        child,
+        if (helper != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            helper!,
+            style: AppTypography.caption.copyWith(color: colors.textHint),
+          ),
+        ],
+      ],
     );
   }
 }
