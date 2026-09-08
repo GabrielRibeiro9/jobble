@@ -1,152 +1,158 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:flutter_tcc/core/theme/app_colors.dart';
 
+import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
+import 'package:flutter_tcc/core/widgets/app_card.dart';
+
+/// Painel de desempenho exibido quando o profissional está fora de operação.
 class OfflineDashboard extends StatelessWidget {
   const OfflineDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      color: colors.background.withValues(alpha: isDark ? 0.95 : 0.9),
+    return ColoredBox(
+      color: colors.background,
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 80, 20, 100),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenH,
+            AppSpacing.xxxl,
+            AppSpacing.screenH,
+            100,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
-              const SizedBox(height: 32),
-              _buildStatsGrid(context),
-              const SizedBox(height: 24),
-              _buildPerformanceSection(context),
-              const SizedBox(height: 24),
-              _buildRecentActivity(context),
+              Text(
+                'Bom trabalho hoje!',
+                style: AppTypography.h1.copyWith(color: colors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                'Confira seu desempenho até agora.',
+                style: AppTypography.body.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.section),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                childAspectRatio: 1.45,
+                children: [
+                  _StatCard(
+                    icon: LucideIcons.wallet,
+                    title: 'Ganhos',
+                    value: r'R$ 250,00',
+                    color: colors.success,
+                  ),
+                  _StatCard(
+                    icon: LucideIcons.briefcase,
+                    title: 'Serviços',
+                    value: '3',
+                    color: colors.primary,
+                  ),
+                  _StatCard(
+                    icon: LucideIcons.clock,
+                    title: 'Tempo online',
+                    value: '4h 30m',
+                    color: colors.warning,
+                  ),
+                  _StatCard(
+                    icon: LucideIcons.star,
+                    title: 'Avaliação',
+                    value: '4,8',
+                    color: colors.ratingStar,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const _AcceptanceCard(rate: 0.92),
+              const SizedBox(height: AppSpacing.xl),
+              const AppSectionHeader(title: 'Atividade recente'),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    const _ActivityRow(
+                      title: 'Instalação elétrica',
+                      time: 'Hoje, 14:30',
+                      value: r'R$ 120,00',
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: AppSpacing.md,
+                      color: colors.borderLight,
+                    ),
+                    const _ActivityRow(
+                      title: 'Reparo hidráulico',
+                      time: 'Hoje, 11:15',
+                      value: r'R$ 85,00',
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Bom trabalho hoje, Filipe!',
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Confira seu desempenho até agora.',
-          style: TextStyle(
-            color: context.colors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+  });
 
-  Widget _buildStatsGrid(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.4,
-      children: [
-        _buildStatCard(
-          context,
-          icon: LucideIcons.wallet,
-          title: 'Ganhos',
-          value: 'R\$ 250,00',
-          color: context.colors.success,
-        ),
-        _buildStatCard(
-          context,
-          icon: LucideIcons.briefcase,
-          title: 'Serviços',
-          value: '3',
-          color: context.colors.themePrimary,
-        ),
-        _buildStatCard(
-          context,
-          icon: LucideIcons.clock,
-          title: 'Tempo Online',
-          value: '4h 30m',
-          color: context.colors.warning,
-        ),
-        _buildStatCard(
-          context,
-          icon: LucideIcons.star,
-          title: 'Avaliação',
-          value: '4.8',
-          color: context.colors.ratingStar,
-        ),
-      ],
-    );
-  }
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
 
-  Widget _buildStatCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.border.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.16),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 17),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  color: context.colors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                style: AppTypography.caption.copyWith(
+                  color: colors.textSecondary,
                 ),
               ),
               Text(
                 value,
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                style: AppTypography.numeric.copyWith(
+                  color: colors.textPrimary,
+                  fontSize: 20,
                 ),
               ),
             ],
@@ -155,15 +161,21 @@ class OfflineDashboard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildPerformanceSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.border.withValues(alpha: 0.3)),
-      ),
+class _AcceptanceCard extends StatelessWidget {
+  const _AcceptanceCard({required this.rate});
+
+  /// Taxa entre 0 e 1.
+  final double rate;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final percent = (rate * 100).round();
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,120 +183,87 @@ class OfflineDashboard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Taxa de Aceitação',
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                'Taxa de aceitação',
+                style: AppTypography.title.copyWith(
+                  color: colors.textPrimary,
                 ),
               ),
               Text(
-                '92%',
-                style: TextStyle(
-                  color: context.colors.success,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                '$percent%',
+                style: AppTypography.title.copyWith(color: colors.primary),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: 0.92,
-            backgroundColor: context.colors.border.withValues(alpha: 0.3),
-            valueColor: AlwaysStoppedAnimation<Color>(context.colors.success),
-            minHeight: 8,
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: AppRadius.pillAll,
+            child: LinearProgressIndicator(
+              value: rate,
+              backgroundColor: colors.surfaceStrong,
+              color: colors.primary,
+              minHeight: 8,
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           Text(
-            'Você está com um ótimo desempenho hoje!',
-            style: TextStyle(
-              color: context.colors.textSecondary,
-              fontSize: 14,
+            'Você está com um ótimo desempenho hoje.',
+            style: AppTypography.bodySmall.copyWith(
+              color: colors.textSecondary,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildRecentActivity(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Atividade Recente',
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildActivityRow(
-          context,
-          title: 'Instalação Elétrica',
-          time: 'Hoje, 14:30',
-          value: 'R\$ 120,00',
-          isLast: false,
-        ),
-        _buildActivityRow(
-          context,
-          title: 'Reparo Hidráulico',
-          time: 'Hoje, 11:15',
-          value: 'R\$ 85,00',
-          isLast: true,
-        ),
-      ],
-    );
-  }
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({
+    required this.title,
+    required this.time,
+    required this.value,
+  });
 
-  Widget _buildActivityRow(
-    BuildContext context, {
-    required String title,
-    required String time,
-    required String value,
-    required bool isLast,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        border: isLast ? null : Border(
-          bottom: BorderSide(color: context.colors.border.withValues(alpha: 0.2)),
-        ),
-      ),
+  final String title;
+  final String time;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: AppSize.categoryIcon,
+            height: AppSize.categoryIcon,
             decoration: BoxDecoration(
-              color: context.colors.surfaceLight,
-              borderRadius: BorderRadius.circular(12),
+              color: colors.success.withValues(alpha: 0.16),
+              shape: BoxShape.circle,
             ),
             child: Icon(
               LucideIcons.circle_check,
-              color: context.colors.success,
-              size: 20,
+              color: colors.success,
+              size: 19,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  style: AppTypography.title.copyWith(
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   time,
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 14,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -292,11 +271,7 @@ class OfflineDashboard extends StatelessWidget {
           ),
           Text(
             value,
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTypography.title.copyWith(color: colors.textPrimary),
           ),
         ],
       ),

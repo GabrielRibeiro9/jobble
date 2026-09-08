@@ -68,6 +68,7 @@ class IntroPage extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   AppSecondaryButton(
+                    onImage: true,
                     label: 'Criar nova conta',
                     onPressed: () {
                       Navigator.push(

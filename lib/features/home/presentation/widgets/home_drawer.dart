@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/core/widgets/profile_avatar.dart';
 import 'package:flutter_tcc/features/schedule/presentation/pages/schedule_page.dart';
 import 'package:flutter_tcc/features/services/presentation/pages/services_page.dart';
@@ -19,6 +21,11 @@ class HomeDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: context.colors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(
+          right: Radius.circular(AppRadius.xl),
+        ),
+      ),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +33,7 @@ class HomeDrawer extends StatelessWidget {
             _buildTopSection(context),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 children: [
                   _buildMenuItem(
                     context,
@@ -87,9 +94,9 @@ class HomeDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: _buildMenuItem(
                 context,
                 icon: LucideIcons.circle_question_mark,
@@ -113,12 +120,12 @@ class HomeDrawer extends StatelessWidget {
         : 'assets/images/logo-jobble.png';
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.asset(logoAsset, height: 32, fit: BoxFit.contain),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
         ],
       ),
     );
@@ -141,19 +148,24 @@ class HomeDrawer extends StatelessWidget {
         }
 
         return Container(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.all(AppSpacing.sm),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: context.colors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(
-              color: context.colors.borderLight.withValues(alpha: 0.1),
+              color: context.colors.border,
+              width: AppSize.border,
             ),
           ),
           child: Row(
             children: [
-              ProfileAvatar(size: 40, imageUrl: avatarUrl, fallbackName: avatarFallback),
-              const SizedBox(width: 12),
+              ProfileAvatar(
+                size: AppSize.categoryIcon,
+                imageUrl: avatarUrl,
+                fallbackName: avatarFallback,
+              ),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,19 +175,16 @@ class HomeDrawer extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: AppTypography.title.copyWith(
                         color: context.colors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       email,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: AppTypography.caption.copyWith(
                         color: context.colors.textSecondary,
-                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -203,16 +212,14 @@ class HomeDrawer extends StatelessWidget {
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(vertical: -2),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       minLeadingWidth: 0,
-      horizontalTitleGap: 12,
+      horizontalTitleGap: AppSpacing.sm,
       leading: Icon(icon, color: color ?? context.colors.textPrimary, size: 20),
       title: Text(
         title,
-        style: TextStyle(
+        style: AppTypography.title.copyWith(
           color: color ?? context.colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
         ),
       ),
       onTap: () {

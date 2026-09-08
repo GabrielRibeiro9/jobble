@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/features/home/presentation/widgets/offline_dashboard.dart';
 
 class HomeBottomDashboard extends StatelessWidget {
@@ -25,14 +27,12 @@ class HomeBottomDashboard extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: colors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.xl),
+            ),
+            border: Border(
+              top: BorderSide(color: colors.border, width: AppSize.border),
+            ),
           ),
           child: Column(
             children: [
@@ -55,19 +55,22 @@ class HomeBottomDashboard extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, AppColorsTheme colors) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.lg,
+      ),
       child: Column(
         children: [
           // Handle
           Container(
-            width: 40,
+            width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: colors.textSecondary.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
+              color: colors.borderStrong,
+              borderRadius: AppRadius.pillAll,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           // Status Line
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,19 +78,14 @@ class HomeBottomDashboard extends StatelessWidget {
               const Icon(LucideIcons.chevron_up, size: 20),
               Column(
                 children: [
-                   Text(
+                  Text(
                     isOnline ? 'Online' : 'Offline',
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTypography.h3.copyWith(color: colors.textPrimary),
                   ),
                   Text(
                     '5 min para pedidos',
-                    style: TextStyle(
+                    style: AppTypography.bodySmall.copyWith(
                       color: colors.textSecondary,
-                      fontSize: 14,
                     ),
                   ),
                 ],

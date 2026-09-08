@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           'Um novo serviço de Elétrica está disponível a 2.5km de você.',
       time: 'há 5 min',
       icon: LucideIcons.map_pin,
-      iconColor: Colors.blue,
+      iconColor: AppColorsTheme.categorical[5],
       isUnread: true,
     ),
     NotificationItem(
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       description: 'Sua transferência de R\$ 250,00 foi concluída com sucesso.',
       time: 'há 2 horas',
       icon: LucideIcons.circle_check,
-      iconColor: Colors.green,
+      iconColor: AppColorsTheme.categorical[4],
     ),
     NotificationItem(
       title: 'Nova avaliação',
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           'João Silva te avaliou com 5 estrelas: "Excelente profissional!".',
       time: 'Ontem',
       icon: LucideIcons.star,
-      iconColor: Colors.amber,
+      iconColor: AppColorsTheme.categorical[2],
       isUnread: true,
     ),
   ];
@@ -998,9 +998,9 @@ class _ShimmerEffectState extends State<_ShimmerEffect>
       builder: (context, child) {
         return ShaderMask(
           shaderCallback: (bounds) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final baseColor = isDark ? Colors.white10 : Colors.black12;
-            final highlightColor = isDark ? Colors.white38 : Colors.black26;
+            final colors = context.colors;
+            final baseColor = colors.textPrimary.withValues(alpha: 0.06);
+            final highlightColor = colors.textPrimary.withValues(alpha: 0.24);
 
             return LinearGradient(
               colors: [baseColor, highlightColor, baseColor],

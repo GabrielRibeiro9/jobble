@@ -22,6 +22,7 @@ class _BaseButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.expanded = true,
+    this.onImage = false,
   });
 
   final _ButtonKind kind;
@@ -30,6 +31,7 @@ class _BaseButton extends StatelessWidget {
   final Widget? icon;
   final bool isLoading;
   final bool expanded;
+  final bool onImage;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,7 @@ class _BaseButton extends StatelessWidget {
     final Color spinnerColor = switch (kind) {
       _ButtonKind.primary => colors.onInverse,
       _ButtonKind.accent => colors.onPrimary,
-      _ButtonKind.secondary => colors.textPrimary,
+      _ButtonKind.secondary => onImage ? colors.inverse : colors.textPrimary,
     };
 
     final Widget child = isLoading
@@ -61,8 +63,16 @@ class _BaseButton extends StatelessWidget {
         onPressed: enabled ? onPressed : null,
         child: child,
       ),
+      // Sobre uma foto, a borda discreta some. A variante onImage troca o
+      // contorno pela cor de alto contraste, que lê sobre qualquer imagem.
       _ButtonKind.secondary => OutlinedButton(
         onPressed: enabled ? onPressed : null,
+        style: onImage
+            ? OutlinedButton.styleFrom(
+                foregroundColor: colors.inverse,
+                side: BorderSide(color: colors.inverse, width: 1.5),
+              )
+            : null,
         child: child,
       ),
     };
@@ -152,6 +162,7 @@ class AppSecondaryButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.expanded = true,
+    this.onImage = false,
   });
 
   final String label;
@@ -159,6 +170,10 @@ class AppSecondaryButton extends StatelessWidget {
   final Widget? icon;
   final bool isLoading;
   final bool expanded;
+
+  /// Use quando o botão fica sobre uma foto ou vídeo, onde a borda padrão
+  /// não tem contraste suficiente.
+  final bool onImage;
 
   @override
   Widget build(BuildContext context) => _BaseButton(
@@ -168,6 +183,7 @@ class AppSecondaryButton extends StatelessWidget {
     icon: icon,
     isLoading: isLoading,
     expanded: expanded,
+    onImage: onImage,
   );
 }
 
