@@ -11,8 +11,9 @@ import 'package:flutter_tcc/features/notifications/data/datasources/notification
 import 'package:flutter_tcc/features/notifications/data/models/notification_model.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
 import 'package:flutter_tcc/features/bids/presentation/pages/match_details_page.dart';
+import 'package:flutter_tcc/features/contracts/presentation/pages/contract_detail_page.dart';
 
-enum NotificationType { match, proposalApproved }
+enum NotificationType { match, proposalApproved, contract }
 
 class NotificationItem {
   final String id;
@@ -21,6 +22,11 @@ class NotificationItem {
   final DateTime dateTime;
   final bool? isUnread;
   final String? serviceRequestId;
+  final String? contractId;
+
+  /// Título escrito pelo servidor. Os avisos de contrato variam demais
+  /// (assinou, pediu ajuste, concluiu…) para o app montar a frase sozinho.
+  final String? serverTitle;
 
   NotificationItem({
     required this.id,
@@ -29,18 +35,25 @@ class NotificationItem {
     required this.dateTime,
     this.isUnread,
     this.serviceRequestId,
+    this.contractId,
+    this.serverTitle,
   });
 
   String get title {
     return switch (type) {
-      NotificationType.match => '$personName precisa dos seus serviços',
-      NotificationType.proposalApproved => '$personName aceitou a sua proposta',
+      // O aviso de chamado novo não leva o nome do cliente: ele só é
+      // liberado quando o cliente escolhe o profissional.
+      NotificationType.match => serverTitle ?? 'Novo chamado na sua região',
+      NotificationType.proposalApproved =>
+        serverTitle ?? '$personName escolheu você',
+      NotificationType.contract => serverTitle ?? 'Atualização no contrato',
     };
   }
 
   IconData get icon => switch (type) {
     NotificationType.match => LucideIcons.sparkle,
     NotificationType.proposalApproved => LucideIcons.badge_check,
+    NotificationType.contract => LucideIcons.file_text,
   };
 }
 
@@ -89,9 +102,11 @@ class _InboxPageState extends State<InboxPage> {
   }
 
   NotificationItem _toNotificationItem(NotificationModel model) {
-    final type = model.type == 'MATCH'
-        ? NotificationType.match
-        : NotificationType.proposalApproved;
+    final type = switch (model.type) {
+      'MATCH' => NotificationType.match,
+      final value when value.startsWith('CONTRACT_') => NotificationType.contract,
+      _ => NotificationType.proposalApproved,
+    };
     return NotificationItem(
       id: model.id,
       personName: model.personName,
@@ -99,6 +114,8 @@ class _InboxPageState extends State<InboxPage> {
       dateTime: model.createdAt,
       isUnread: model.isUnread,
       serviceRequestId: model.serviceRequestId,
+      contractId: model.contractId,
+      serverTitle: model.title,
     );
   }
 
@@ -191,13 +208,23 @@ class _InboxPageState extends State<InboxPage> {
 
     return GestureDetector(
       onTap: () {
+        // Aviso ligado a contrato (inclusive "o cliente escolheu você") abre
+        // o contrato: é lá que está o próximo passo.
+        if (item.contractId != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ContractDetailPage(contractId: item.contractId!),
+            ),
+          );
+          return;
+        }
+
         if (item.type == NotificationType.match &&
             item.serviceRequestId != null) {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => MatchDetailsPage(
                 serviceRequestId: item.serviceRequestId!,
-                clientName: item.personName,
               ),
             ),
           );
@@ -244,13 +271,13 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   if (isUnread) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    // Ponto em lima: marca de não lida, no lugar de esmaecer
+                    // Ponto verde: marca de não lida, no lugar de esmaecer
                     // as já lidas.
                     Container(
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: colors.primary,
+                        color: colors.accentText,
                         shape: BoxShape.circle,
                       ),
                     ),

@@ -14,7 +14,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<EarningsSummaryModel> getCompletedJobsToday() async {
     try {
-      final response = await dioClient.dio.get('/professional/jobs/completed-today');
+      // A rota mora no módulo de organizações do backend desde que o módulo
+      // `professional` foi renomeado; `/professional/...` responde 404.
+      final response = await dioClient.dio.get(
+        '/organizations/jobs/completed-today',
+      );
       return EarningsSummaryModel.fromJson(response.data);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.receiveTimeout || e.type == DioExceptionType.connectionTimeout) {

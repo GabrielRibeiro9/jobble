@@ -6,6 +6,7 @@ import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/core/widgets/app_card.dart';
 import 'package:flutter_tcc/core/widgets/app_list_row.dart';
+import 'package:flutter_tcc/features/legal/presentation/pages/verification_center_page.dart';
 import 'package:flutter_tcc/features/settings/presentation/pages/settings_page.dart';
 
 class SettingsCenterPage extends StatelessWidget {
@@ -34,17 +35,28 @@ class SettingsCenterPage extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const SettingsPage()),
                 ),
               ),
-              (
-                icon: LucideIcons.history,
-                title: 'Histórico de serviços',
-                onTap: null,
-              ),
               (icon: LucideIcons.gauge, title: 'Meus ganhos', onTap: null),
             ],
           ),
           const SizedBox(height: AppSpacing.section),
           const AppSectionHeader(title: 'Central de segurança'),
           const SizedBox(height: AppSpacing.md),
+          AppListGroup(
+            children: [
+              AppListRow(
+                title: 'Cadastro e verificação',
+                subtitle: 'Dados, identidade e certidão de antecedentes',
+                icon: LucideIcons.shield_check,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const VerificationCenterPage(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
           const Row(
             children: [
               Expanded(

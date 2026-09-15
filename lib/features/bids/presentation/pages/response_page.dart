@@ -10,16 +10,32 @@ import 'package:flutter_tcc/core/network/dio_client.dart';
 import 'package:flutter_tcc/injection_container.dart';
 import 'package:flutter_tcc/features/bids/data/datasources/bid_remote_data_source.dart';
 
+/// Devolutiva de um chamado já aceito.
+///
+/// O valor é opcional de propósito: muito serviço não dá para orçar sem
+/// perguntar antes, e obrigar um número aqui fazia o profissional chutar ou
+/// não responder. Quem ainda não sabe manda só a réplica — as dúvidas que
+/// faltam — e o cliente responde ao escolher.
 class ResponsePage extends StatefulWidget {
   final String serviceMatchId;
   final String clientName;
   final VoidCallback onSubmitted;
+
+  /// Devolutiva já enviada, quando o profissional volta para ajustá-la.
+  final double? initialBidValue;
+  final String? initialServiceType;
+  final DateTime? initialProposedDate;
+  final String? initialQuestion;
 
   const ResponsePage({
     super.key,
     required this.serviceMatchId,
     required this.clientName,
     required this.onSubmitted,
+    this.initialBidValue,
+    this.initialServiceType,
+    this.initialProposedDate,
+    this.initialQuestion,
   });
 
   @override
@@ -45,8 +61,13 @@ class _MoneyInputFormatter extends TextInputFormatter {
 class _ResponsePageState extends State<ResponsePage> {
   final dataSource = BidRemoteDataSource(dioClient: sl<DioClient>());
   final _formKey = GlobalKey<FormState>();
-  final _valueController = TextEditingController(text: '0,00');
-  bool _isImmediate = true;
+  late final TextEditingController _valueController;
+  late final TextEditingController _questionController;
+
+  /// Falso quando o profissional aceitou mas ainda não consegue orçar.
+  late bool _hasValue;
+
+  late bool _isImmediate;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _submitting = false;
@@ -57,15 +78,40 @@ class _ResponsePageState extends State<ResponsePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    final initialValue = widget.initialBidValue;
+    _hasValue = initialValue != null;
+    _valueController = TextEditingController(
+      text: initialValue != null
+          ? initialValue.toStringAsFixed(2).replaceFirst('.', ',')
+          : '0,00',
+    );
+    _questionController = TextEditingController(
+      text: widget.initialQuestion ?? '',
+    );
+
+    _isImmediate = widget.initialServiceType != 'SCHEDULED';
+
+    final proposed = widget.initialProposedDate;
+    if (proposed != null) {
+      _selectedDate = proposed;
+      _selectedTime = TimeOfDay.fromDateTime(proposed);
+    }
+  }
+
+  @override
   void dispose() {
     _valueController.dispose();
+    _questionController.dispose();
     super.dispose();
   }
 
   Future<void> _pickDate() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
+      initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
@@ -73,7 +119,9 @@ class _ResponsePageState extends State<ResponsePage> {
       if (!mounted) return;
       final time = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 8))),
+        initialTime:
+            _selectedTime ??
+            TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 8))),
       );
       if (time != null && mounted) {
         setState(() {
@@ -87,7 +135,20 @@ class _ResponsePageState extends State<ResponsePage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_isImmediate && (_selectedDate == null || _selectedTime == null)) {
+    final question = _questionController.text.trim();
+
+    // Uma devolutiva sem valor e sem pergunta não diz nada ao cliente — é o
+    // mesmo que não responder. O backend recusa; a checagem aqui evita a ida.
+    if (!_hasValue && question.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe um valor ou escreva suas dúvidas'),
+        ),
+      );
+      return;
+    }
+
+    if (_hasValue && !_isImmediate && (_selectedDate == null || _selectedTime == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione a data de atendimento')),
       );
@@ -97,9 +158,8 @@ class _ResponsePageState extends State<ResponsePage> {
     setState(() => _submitting = true);
 
     try {
-      final value = _cents / 100.0;
       String? proposedDate;
-      if (!_isImmediate && _selectedDate != null && _selectedTime != null) {
+      if (_hasValue && !_isImmediate && _selectedDate != null && _selectedTime != null) {
         final dateTime = DateTime(
           _selectedDate!.year,
           _selectedDate!.month,
@@ -110,22 +170,23 @@ class _ResponsePageState extends State<ResponsePage> {
         proposedDate = dateTime.toIso8601String();
       }
 
-      await dataSource.respondToMatch(
+      await dataSource.sendBid(
         serviceMatchId: widget.serviceMatchId,
-        bidValue: value,
-        serviceType: _isImmediate ? 'IMMEDIATE' : 'SCHEDULED',
+        bidValue: _hasValue ? _cents / 100.0 : null,
+        serviceType: _hasValue ? (_isImmediate ? 'IMMEDIATE' : 'SCHEDULED') : null,
         proposedDate: proposedDate,
+        question: question.isEmpty ? null : question,
       );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Proposta enviada com sucesso!')),
+        const SnackBar(content: Text('Devolutiva enviada ao cliente!')),
       );
       widget.onSubmitted();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao enviar proposta: $e')),
+        SnackBar(content: Text('Erro ao enviar devolutiva: $e')),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -147,7 +208,7 @@ class _ResponsePageState extends State<ResponsePage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        title: const Text('Responder'),
+        title: const Text('Devolutiva'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
@@ -162,96 +223,135 @@ class _ResponsePageState extends State<ResponsePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Proposta para ${widget.clientName}',
+                'Devolutiva para ${widget.clientName}',
                 style: AppTypography.h2.copyWith(color: colors.textPrimary),
               ),
-              const SizedBox(height: AppSpacing.section),
-              AppTextField(
-                controller: _valueController,
-                label: 'Valor do serviço',
-                hint: '0,00',
-                keyboardType: TextInputType.number,
-                inputFormatters: [_MoneyInputFormatter()],
-                prefixIcon: Icons.attach_money_rounded,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Informe o valor';
-                  final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
-                  if (parsed == null || parsed <= 0) return 'Valor inválido';
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.xs),
               Text(
-                'Tipo de atendimento',
-                style: AppTypography.label.copyWith(
+                'Você já aceitou este chamado. Mande o valor, as dúvidas que '
+                'faltam, ou os dois.',
+                style: AppTypography.bodySmall.copyWith(
                   color: colors.textSecondary,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.section),
               AppSelectableCard(
-                title: 'Atendimento imediato',
-                subtitle: 'Posso realizar o serviço assim que for aceito',
-                selected: _isImmediate,
-                onTap: () => setState(() {
-                  _isImmediate = true;
-                  _selectedDate = null;
-                  _selectedTime = null;
-                }),
+                title: 'Já sei o valor',
+                subtitle: 'Envio o orçamento agora',
+                selected: _hasValue,
+                onTap: () => setState(() => _hasValue = true),
               ),
               const SizedBox(height: AppSpacing.xs),
               AppSelectableCard(
-                title: 'Serviço agendado',
-                subtitle: 'Preciso marcar uma data para realizar o serviço',
-                selected: !_isImmediate,
-                onTap: () => setState(() => _isImmediate = false),
+                title: 'Ainda não consigo orçar',
+                subtitle: 'Preciso de mais detalhes antes de dar um valor',
+                selected: !_hasValue,
+                onTap: () => setState(() => _hasValue = false),
               ),
-              if (!_isImmediate) ...[
-                const SizedBox(height: AppSpacing.md),
-                AppFieldGroup(
-                  label: 'Data do atendimento',
-                  child: GestureDetector(
-                    onTap: _pickDate,
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      width: double.infinity,
-                      height: AppSize.field,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: AppRadius.mdAll,
-                        border: Border.all(
-                          color: colors.border,
-                          width: AppSize.border,
+              if (_hasValue) ...[
+                const SizedBox(height: AppSpacing.xl),
+                AppTextField(
+                  controller: _valueController,
+                  label: 'Valor do serviço',
+                  hint: '0,00',
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [_MoneyInputFormatter()],
+                  prefixIcon: Icons.attach_money_rounded,
+                  validator: (v) {
+                    if (!_hasValue) return null;
+                    if (v == null || v.trim().isEmpty) return 'Informe o valor';
+                    final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
+                    if (parsed == null || parsed <= 0) return 'Valor inválido';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  'Tipo de atendimento',
+                  style: AppTypography.label.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                AppSelectableCard(
+                  title: 'Atendimento imediato',
+                  subtitle: 'Posso realizar o serviço assim que for escolhido',
+                  selected: _isImmediate,
+                  onTap: () => setState(() {
+                    _isImmediate = true;
+                    _selectedDate = null;
+                    _selectedTime = null;
+                  }),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                AppSelectableCard(
+                  title: 'Serviço agendado',
+                  subtitle: 'Preciso marcar uma data para realizar o serviço',
+                  selected: !_isImmediate,
+                  onTap: () => setState(() => _isImmediate = false),
+                ),
+                if (!_isImmediate) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppFieldGroup(
+                    label: 'Data do atendimento',
+                    child: GestureDetector(
+                      onTap: _pickDate,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: double.infinity,
+                        height: AppSize.field,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 18,
-                            color: colors.textSecondary,
+                        decoration: BoxDecoration(
+                          borderRadius: AppRadius.mdAll,
+                          border: Border.all(
+                            color: colors.border,
+                            width: AppSize.border,
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              _scheduleLabel(),
-                              style: AppTypography.body.copyWith(
-                                color: _selectedDate != null
-                                    ? colors.textPrimary
-                                    : colors.textHint,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 18,
+                              color: colors.textSecondary,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                _scheduleLabel(),
+                                style: AppTypography.body.copyWith(
+                                  color: _selectedDate != null
+                                      ? colors.textPrimary
+                                      : colors.textHint,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ],
+              const SizedBox(height: AppSpacing.xl),
+              AppTextField(
+                controller: _questionController,
+                label: _hasValue
+                    ? 'Dúvidas para o cliente (opcional)'
+                    : 'O que você precisa saber',
+                hint: 'Ex.: qual o tamanho da área? Já tem o material?',
+                helper: _hasValue
+                    ? null
+                    : 'O cliente responde isso ao escolher você.',
+                maxLines: 4,
+                maxLength: 1000,
+                keyboardType: TextInputType.multiline,
+              ),
               const SizedBox(height: AppSpacing.section),
               AppPrimaryButton(
-                label: 'Enviar proposta',
+                label: 'Enviar devolutiva',
                 isLoading: _submitting,
                 onPressed: _submit,
               ),
