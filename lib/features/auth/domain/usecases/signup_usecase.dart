@@ -10,7 +10,16 @@ class SignupUseCase {
     String email,
     String password, {
     String? cpf,
+    String? phone,
+    String? birthDate,
   }) async {
-    await repository.signup(name, email, password, cpf: cpf);
+    await repository.signup(
+      name,
+      email,
+      password,
+      cpf: cpf,
+      phone: phone,
+      birthDate: birthDate,
+    );
   }
 }

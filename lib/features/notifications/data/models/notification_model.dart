@@ -5,6 +5,9 @@ class NotificationModel {
   final String title;
   final String personName;
   final String? serviceRequestId;
+
+  /// Preenchido nos avisos de contrato (`CONTRACT_*` e na contratação).
+  final String? contractId;
   final bool isUnread;
   final DateTime createdAt;
 
@@ -15,6 +18,7 @@ class NotificationModel {
     required this.title,
     required this.personName,
     this.serviceRequestId,
+    this.contractId,
     required this.isUnread,
     required this.createdAt,
   });
@@ -27,6 +31,7 @@ class NotificationModel {
       title: json['title'] as String,
       personName: json['personName'] as String,
       serviceRequestId: json['serviceRequestId'] as String?,
+      contractId: json['contractId'] as String?,
       isUnread: json['isUnread'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );

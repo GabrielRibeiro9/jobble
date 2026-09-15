@@ -10,7 +10,13 @@ abstract class AuthRemoteDataSource {
   Future<void> signup(SignupRequest request);
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
-  Future<void> completeOnboarding(String organizationName, {String? description});
+  Future<void> completeOnboarding(
+    String organizationName, {
+    String? description,
+    String? legalType,
+    String? document,
+    String? legalName,
+  });
   Future<UserModel> getMe();
   Future<void> updateOrganizationProfile(String tags, String bio);
 }
@@ -100,13 +106,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> completeOnboarding(String organizationName, {String? description}) async {
+  Future<void> completeOnboarding(
+    String organizationName, {
+    String? description,
+    String? legalType,
+    String? document,
+    String? legalName,
+  }) async {
     try {
       await dioClient.dio.post(
         '/auth/complete-onboarding',
         data: {
           'organizationName': organizationName,
-          if (description != null) 'description': description,
+          'description': ?description,
+          'legalType': ?legalType,
+          'document': ?document,
+          'legalName': ?legalName,
         },
       );
     } on DioException catch (e) {

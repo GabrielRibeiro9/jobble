@@ -3,12 +3,18 @@ class SignupRequest {
   final String email;
   final String password;
   final String? cpf;
+  final String? phone;
+
+  /// ISO 8601.
+  final String? birthDate;
 
   SignupRequest({
     this.name,
     required this.email,
     required this.password,
     this.cpf,
+    this.phone,
+    this.birthDate,
   });
 
   Map<String, dynamic> toJson() {
@@ -16,7 +22,9 @@ class SignupRequest {
       'name': name,
       'email': email,
       'password': password,
-      'cpf': cpf,
+      'cpf': ?cpf,
+      'phone': ?phone,
+      'birthDate': ?birthDate,
     };
   }
 }

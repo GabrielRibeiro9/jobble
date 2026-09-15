@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
+import 'package:flutter_tcc/core/utils/br_documents.dart';
 import 'package:flutter_tcc/core/widgets/app_buttons.dart';
+import 'package:flutter_tcc/features/legal/data/models/legal_models.dart';
 import 'package:flutter_tcc/core/widgets/step_progress.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
@@ -12,7 +14,7 @@ import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_email
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_otp.dart';
 import 'package:flutter_tcc/features/auth/presentation/widgets/signup_step_profile.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
+import 'package:flutter_tcc/features/legal/presentation/pages/account_gate_page.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 
@@ -32,8 +34,23 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _birthDateController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _orgNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _documentController = TextEditingController();
+  final TextEditingController _legalNameController = TextEditingController();
+
+  final _cpfMask = BrMasks.cpf();
+  final _birthDateMask = BrMasks.date();
+  final _phoneMask = BrMasks.phone();
+  final _cnpjMask = BrMasks.cnpj();
+
+  final _step1FormKey = GlobalKey<FormState>();
+  final _step3FormKey = GlobalKey<FormState>();
+
+  OrganizationLegalType _legalType = OrganizationLegalType.individual;
 
   @override
   void dispose() {
@@ -42,28 +59,48 @@ class _SignupPageState extends State<SignupPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameController.dispose();
+    _cpfController.dispose();
+    _birthDateController.dispose();
+    _phoneController.dispose();
     _orgNameController.dispose();
     _descriptionController.dispose();
+    _documentController.dispose();
+    _legalNameController.dispose();
     super.dispose();
   }
 
   void _onStep1Continue() {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('As senhas não coincidem'),
-          backgroundColor: context.colors.error,
-        ),
-      );
-      return;
-    }
+    if (!(_step1FormKey.currentState?.validate() ?? false)) return;
+
+    final birth = parseBrDate(_birthDateController.text)!;
 
     context.read<AuthBloc>().add(
       SignupSubmitted(
-        name: _nameController.text,
-        email: _emailController.text,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
         password: _passwordController.text,
+        cpf: onlyDigits(_cpfController.text),
+        phone: onlyDigits(_phoneController.text),
+        // Meio-dia UTC: nascimento é um dia, e meia-noite local viraria o
+        // dia anterior no servidor.
+        birthDate: DateTime.utc(
+          birth.year,
+          birth.month,
+          birth.day,
+          12,
+        ).toIso8601String(),
       ),
+    );
+  }
+
+  CompleteOnboardingSubmitted _onboardingEvent() {
+    final isCompany = _legalType == OrganizationLegalType.company;
+    return CompleteOnboardingSubmitted(
+      organizationName: _orgNameController.text.trim(),
+      description: _descriptionController.text,
+      legalType: _legalType.apiValue,
+      document: isCompany ? onlyDigits(_documentController.text) : null,
+      legalName: isCompany ? _legalNameController.text.trim() : null,
     );
   }
 
@@ -94,6 +131,8 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _onFinish() {
+    if (!(_step3FormKey.currentState?.validate() ?? false)) return;
+
     context.read<AuthBloc>().add(
       LoginSubmitted(
         email: _emailController.text,
@@ -118,12 +157,7 @@ class _SignupPageState extends State<SignupPage> {
           );
 
           if (!completed && _currentStep == 2) {
-            context.read<AuthBloc>().add(
-              CompleteOnboardingSubmitted(
-                organizationName: _orgNameController.text,
-                description: _descriptionController.text,
-              ),
-            );
+            context.read<AuthBloc>().add(_onboardingEvent());
             return;
           }
 
@@ -133,7 +167,7 @@ class _SignupPageState extends State<SignupPage> {
           if (!completed) {
             nextStep = const CompleteProfilePage();
           } else {
-            nextStep = const MainShellPage();
+            nextStep = const AccountGatePage();
           }
 
           Navigator.of(context).pushAndRemoveUntil(
@@ -142,7 +176,7 @@ class _SignupPageState extends State<SignupPage> {
           );
         } else if (state is AuthOnboardingSuccess) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const MainShellPage()),
+            MaterialPageRoute(builder: (context) => const AccountGatePage()),
             (route) => false,
           );
         } else if (state is AuthFailure) {
@@ -191,10 +225,17 @@ class _SignupPageState extends State<SignupPage> {
                   },
                   children: [
                     SignupStepEmail(
+                      formKey: _step1FormKey,
                       nameController: _nameController,
+                      cpfController: _cpfController,
+                      birthDateController: _birthDateController,
+                      phoneController: _phoneController,
                       emailController: _emailController,
                       passwordController: _passwordController,
                       confirmPasswordController: _confirmPasswordController,
+                      cpfMask: _cpfMask,
+                      birthDateMask: _birthDateMask,
+                      phoneMask: _phoneMask,
                       onContinue: _onStep1Continue,
                       isLoading: isLoading && _currentStep == 0,
                     ),
@@ -204,8 +245,15 @@ class _SignupPageState extends State<SignupPage> {
                       isLoading: isLoading && _currentStep == 1,
                     ),
                     SignupStepProfile(
+                      formKey: _step3FormKey,
                       orgNameController: _orgNameController,
                       descriptionController: _descriptionController,
+                      legalType: _legalType,
+                      onLegalTypeChanged: (type) =>
+                          setState(() => _legalType = type),
+                      documentController: _documentController,
+                      legalNameController: _legalNameController,
+                      cnpjMask: _cnpjMask,
                       onFinish: _onFinish,
                       isLoading: isLoading && _currentStep == 2,
                     ),

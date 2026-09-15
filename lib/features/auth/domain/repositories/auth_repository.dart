@@ -8,10 +8,18 @@ abstract class AuthRepository {
     String email,
     String password, {
     String? cpf,
+    String? phone,
+    String? birthDate,
   });
   Future<void> verifyEmail(String email, String code);
   Future<void> resendVerificationCode(String email);
-  Future<void> completeOnboarding(String organizationName, {String? description});
+  Future<void> completeOnboarding(
+    String organizationName, {
+    String? description,
+    String? legalType,
+    String? document,
+    String? legalName,
+  });
   Future<User> getMe();
   Future<void> updateOrganizationProfile(String tags, String bio);
 }

@@ -101,6 +101,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.email,
         event.password,
         cpf: event.cpf,
+        phone: event.phone,
+        birthDate: event.birthDate,
       );
       emit(AuthSignupStep1Success());
     } catch (e) {
@@ -132,6 +134,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await completeOnboardingUseCase.execute(
         event.organizationName,
         description: event.description,
+        legalType: event.legalType,
+        document: event.document,
+        legalName: event.legalName,
       );
       final token = await tokenService.getToken();
       if (token != null) {

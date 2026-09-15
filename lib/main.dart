@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:flutter_tcc/core/theme/app_theme.dart';
 import 'package:flutter_tcc/features/onboard/presentation/pages/intro_page.dart';
@@ -9,6 +10,11 @@ import 'package:flutter_tcc/features/settings/presentation/bloc/config_bloc.dart
 import 'package:flutter_tcc/core/theme/theme_cubit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Contratos mostram datas por extenso em português; sem os símbolos
+  // carregados, `DateFormat` com locale pt_BR lança em tempo de execução.
+  await initializeDateFormatting('pt_BR');
+
   await di.init();
   runApp(const MyApp());
 }

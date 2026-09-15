@@ -12,7 +12,7 @@ import 'package:flutter_tcc/features/auth/presentation/bloc/auth_event.dart';
 import 'package:flutter_tcc/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/signup_page.dart';
-import 'package:flutter_tcc/features/home/presentation/pages/main_shell_page.dart';
+import 'package:flutter_tcc/features/legal/presentation/pages/account_gate_page.dart';
 import 'package:flutter_tcc/injection_container.dart' as di;
 
 class LoginForm extends StatefulWidget {
@@ -57,7 +57,7 @@ class _LoginFormState extends State<LoginForm> {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => completed
-                ? const MainShellPage()
+                ? const AccountGatePage()
                 : const CompleteProfilePage(),
           ),
           (route) => false,

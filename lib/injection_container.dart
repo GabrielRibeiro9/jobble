@@ -28,6 +28,9 @@ import 'package:flutter_tcc/features/home/presentation/bloc/home_jobs_bloc.dart'
 import 'package:flutter_tcc/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:flutter_tcc/features/notifications/data/datasources/notification_remote_data_source.dart';
 import 'package:flutter_tcc/features/bids/data/datasources/bid_remote_data_source.dart';
+import 'package:flutter_tcc/features/contracts/data/datasources/contract_remote_data_source.dart';
+import 'package:flutter_tcc/features/contracts/domain/contract_repository.dart';
+import 'package:flutter_tcc/features/legal/data/datasources/legal_remote_data_source.dart';
 
 final sl = GetIt.instance;
 
@@ -106,5 +109,16 @@ Future<void> init() async {
   // Bids
   sl.registerLazySingleton<BidRemoteDataSource>(
     () => BidRemoteDataSource(dioClient: sl()),
+  );
+
+  // Cadastro legal e identidade
+  sl.registerLazySingleton<LegalRemoteDataSource>(
+    () => LegalRemoteDataSource(dioClient: sl()),
+  );
+
+  // Contratos. Registrado pela abstração para os cubits poderem ser testados
+  // com um repositório falso.
+  sl.registerLazySingleton<ContractRepository>(
+    () => ContractRemoteDataSource(dioClient: sl()),
   );
 }

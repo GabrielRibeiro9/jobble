@@ -22,16 +22,22 @@ class SignupSubmitted extends AuthEvent {
   final String email;
   final String password;
   final String? cpf;
+  final String? phone;
+
+  /// ISO 8601.
+  final String? birthDate;
 
   const SignupSubmitted({
     this.name,
     required this.email,
     required this.password,
     this.cpf,
+    this.phone,
+    this.birthDate,
   });
 
   @override
-  List<Object?> get props => [name, email, password, cpf];
+  List<Object?> get props => [name, email, password, cpf, phone, birthDate];
 }
 
 class EmailVerificationSubmitted extends AuthEvent {
@@ -48,13 +54,29 @@ class CompleteOnboardingSubmitted extends AuthEvent {
   final String organizationName;
   final String? description;
 
+  /// `INDIVIDUAL` ou `COMPANY`.
+  final String? legalType;
+
+  /// CNPJ, só dígitos, quando empresa.
+  final String? document;
+  final String? legalName;
+
   const CompleteOnboardingSubmitted({
     required this.organizationName,
     this.description,
+    this.legalType,
+    this.document,
+    this.legalName,
   });
 
   @override
-  List<Object?> get props => [organizationName, description];
+  List<Object?> get props => [
+    organizationName,
+    description,
+    legalType,
+    document,
+    legalName,
+  ];
 }
 
 class UpdateOrganizationProfileSubmitted extends AuthEvent {
