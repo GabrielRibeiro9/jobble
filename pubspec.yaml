@@ -78,8 +78,7 @@ flutter:
   assets:
     - assets/images/base-brasil-white.png
     - assets/images/google.svg
-    - assets/images/intro_bg.png
-    - assets/images/intro_bg.jpeg
+    - assets/images/intro_illustration.jpg
     - assets/images/logo-jobble.png
     - assets/images/logo-jobble-white.png
     - assets/images/portfolio/
