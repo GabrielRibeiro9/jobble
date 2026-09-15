@@ -5,9 +5,9 @@ import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 
-/// Estado vazio: ícone contido em um círculo de superfície, título, apoio e
-/// uma ação opcional. Usado tanto para listas sem conteúdo quanto para telas
-/// ainda em construção.
+/// Estado vazio: ícone num círculo lima pálido, título, apoio e uma ação
+/// opcional. Usado tanto para listas sem conteúdo quanto para telas ainda em
+/// construção.
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
@@ -35,15 +35,15 @@ class AppEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: colors.surfaceLight,
+                color: colors.accentSoft,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 26, color: colors.textSecondary),
+              child: Icon(icon, size: 22, color: colors.textPrimary),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             Text(
               title,
               textAlign: TextAlign.center,

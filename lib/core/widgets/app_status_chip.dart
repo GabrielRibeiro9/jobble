@@ -4,11 +4,13 @@ import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 
-/// Etiqueta de status: pill em caixa alta, tingido pela cor semântica.
+/// Badge de status: pill com fundo pálido e texto na cor cheia.
 ///
-/// O fundo é a cor com opacidade baixa e o texto é a cor cheia — assim o
-/// status se destaca sem competir com o acento da tela, e o mesmo componente
-/// serve para sucesso, atenção, erro e neutro.
+/// Recebe a cor semântica (`success`, `warning`, `error`, `info`) e deriva o
+/// par fundo/texto. Dois casos viram tons próprios do sistema:
+/// - `primary` (lima) vira o badge de marca: lima cheio com tinta floresta —
+///   lima como texto sobre lima pálido não teria leitura.
+/// - `textHint` vira o neutro: cinza claro com texto cinza médio.
 class AppStatusChip extends StatelessWidget {
   const AppStatusChip({super.key, required this.label, required this.color});
 
@@ -17,18 +19,32 @@ class AppStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs + 2,
-        vertical: AppSpacing.xxs + 1,
+    final colors = context.colors;
+
+    final (Color background, Color foreground) = switch (color) {
+      _ when color == colors.primary => (colors.primary, colors.onPrimary),
+      _ when color == colors.textHint || color == colors.textSecondary => (
+        colors.surfaceLight,
+        colors.textSecondary,
       ),
+      _ => (color.withValues(alpha: 0.12), color),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
+        color: background,
         borderRadius: AppRadius.pillAll,
       ),
       child: Text(
-        label.toUpperCase(),
-        style: AppTypography.overline.copyWith(color: color),
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.caption.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w600,
+          height: 1.2,
+        ),
       ),
     );
   }
@@ -48,7 +64,7 @@ class AppMetaRow extends StatelessWidget {
   final String text;
   final Widget? trailing;
 
-  /// Destaca o texto em cor primária e peso médio.
+  /// Destaca o texto em cor de tinta e peso médio.
   final bool emphasized;
 
   @override

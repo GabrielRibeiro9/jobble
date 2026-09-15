@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 
-/// Campo de texto do design system: contorno discreto, rótulo flutuante
-/// recortado na borda e foco em lima.
+/// Campo de texto do design system: rótulo acima, campo branco com borda de
+/// 1px e raio 10, foco em floresta.
 ///
-/// A decoração toda vem do `inputDecorationTheme` — este widget só padroniza
-/// altura, ícone de sufixo e o comportamento de senha.
+/// A decoração vem do `inputDecorationTheme` — este widget só padroniza o
+/// rótulo, a altura, o ícone de sufixo e o comportamento de senha.
 class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
@@ -74,16 +75,19 @@ class _AppTextFieldState extends State<AppTextField> {
       suffix = IconButton(
         onPressed: () => setState(() => _obscured = !_obscured),
         icon: Icon(
-          _obscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          size: 20,
+          _obscured ? LucideIcons.eye_off : LucideIcons.eye,
+          size: 18,
         ),
-        color: colors.textSecondary,
-        style: const ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.transparent)),
+        color: colors.textHint,
+        style: const ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+          side: WidgetStatePropertyAll(BorderSide.none),
+        ),
         tooltip: _obscured ? 'Mostrar senha' : 'Ocultar senha',
       );
     }
 
-    return TextFormField(
+    final field = TextFormField(
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
@@ -99,29 +103,50 @@ class _AppTextFieldState extends State<AppTextField> {
       onTap: widget.onTap,
       validator: widget.validator,
       autofillHints: widget.autofillHints,
-      cursorColor: colors.primary,
-      style: Theme.of(
-        context,
-      ).textTheme.bodyLarge?.copyWith(color: colors.textPrimary),
+      style: AppTypography.body.copyWith(color: colors.textPrimary),
       decoration: InputDecoration(
-        labelText: widget.label,
         hintText: widget.hint,
         helperText: widget.helper,
+        helperMaxLines: 3,
         errorText: widget.errorText,
+        errorMaxLines: 3,
         counterText: '',
         prefixIcon: widget.prefixIcon == null
             ? null
-            : Icon(widget.prefixIcon, size: 20),
+            : Icon(widget.prefixIcon, size: 18),
         suffixIcon: suffix,
         constraints: const BoxConstraints(minHeight: AppSize.field),
       ),
+    );
+
+    final label = widget.label;
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [_FieldLabel(label), const SizedBox(height: 6), field],
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: AppTypography.label.copyWith(color: context.colors.textBody),
     );
   }
 }
 
 /// Rótulo + controle + texto de apoio, para controles que não são
-/// [AppTextField] e portanto não têm rótulo flutuante próprio (seletor de
-/// tags, seletor de data, toggles). Mantém o mesmo ritmo vertical dos campos.
+/// [AppTextField] (seletor de tags, de data, toggles). Mantém o mesmo ritmo
+/// vertical dos campos.
 class AppFieldGroup extends StatelessWidget {
   const AppFieldGroup({
     super.key,
@@ -140,17 +165,17 @@ class AppFieldGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTypography.label.copyWith(color: colors.textSecondary),
-        ),
-        const SizedBox(height: AppSpacing.xs),
+        _FieldLabel(label),
+        const SizedBox(height: 6),
         child,
         if (helper != null) ...[
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 6),
           Text(
             helper!,
-            style: AppTypography.caption.copyWith(color: colors.textHint),
+            style: AppTypography.bodySmall.copyWith(
+              color: colors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         ],
       ],

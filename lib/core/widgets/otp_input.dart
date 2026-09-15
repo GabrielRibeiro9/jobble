@@ -109,16 +109,17 @@ class _OtpInputState extends State<OtpInput> {
             ),
             child: AnimatedContainer(
               duration: AppDuration.fast,
-              height: 62,
+              height: 58,
               decoration: BoxDecoration(
                 color: colors.surface,
                 borderRadius: AppRadius.smAll,
                 border: Border.all(
                   color: isFocused
-                      ? colors.primary
+                      ? colors.focus
                       : (isFilled ? colors.borderStrong : colors.border),
                   width: isFocused ? AppSize.borderFocused : AppSize.border,
                 ),
+                boxShadow: AppShadow.xs,
               ),
               alignment: Alignment.center,
               child: TextField(
@@ -128,8 +129,10 @@ class _OtpInputState extends State<OtpInput> {
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: AppTypography.h2.copyWith(color: colors.textPrimary),
-                cursorColor: colors.primary,
+                style: AppTypography.numeric.copyWith(
+                  color: colors.textPrimary,
+                ),
+                cursorColor: colors.focus,
                 decoration: const InputDecoration(
                   counterText: '',
                   border: InputBorder.none,

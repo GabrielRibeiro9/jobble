@@ -4,8 +4,11 @@ import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 
 /// Progresso de fluxo em segmentos: uma barra curta por passo, preenchida em
-/// lima até o passo atual. Comunica quantos passos faltam de forma mais direta
-/// que uma barra contínua.
+/// tinta até o passo atual. Comunica quantos passos faltam de forma mais
+/// direta que uma barra contínua.
+///
+/// O preenchimento é floresta (lima no escuro), não lima: os segmentos ficam
+/// sobre a página cinza, onde o lima não teria contraste.
 class StepProgress extends StatelessWidget {
   const StepProgress({
     super.key,
@@ -32,15 +35,15 @@ class StepProgress extends StatelessWidget {
       children: List.generate(totalSteps, (index) {
         final isFilled = index < currentStep;
         return AnimatedContainer(
-          duration: AppDuration.normal,
-          curve: Curves.easeOut,
+          duration: AppDuration.slow,
+          curve: AppCurve.out,
           width: segmentWidth,
           height: height,
           margin: EdgeInsets.only(
             right: index == totalSteps - 1 ? 0 : AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: isFilled ? colors.primary : colors.surfaceStrong,
+            color: isFilled ? colors.inverse : colors.borderStrong,
             borderRadius: AppRadius.pillAll,
           ),
         );

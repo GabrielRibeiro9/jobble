@@ -186,7 +186,10 @@ class _RadiusRow extends StatelessWidget {
           title: 'Raio de atuação',
           trailing: Text(
             '${value.toInt()} km',
-            style: AppTypography.title.copyWith(color: colors.primary),
+            style: AppTypography.numeric.copyWith(
+              color: colors.textPrimary,
+              fontSize: 15,
+            ),
           ),
         ),
         Padding(

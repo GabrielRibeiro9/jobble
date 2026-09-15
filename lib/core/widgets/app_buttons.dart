@@ -3,18 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 
-/// Três níveis de ação, todos em pill de 56 de altura.
+/// Três níveis de ação, todos em pill de 48 de altura.
 ///
-/// - [AppPrimaryButton]: a ação principal da tela. Alto contraste.
-/// - [AppAccentButton]: destaque de acento (lima). No máximo um por tela.
-/// - [AppSecondaryButton]: alternativa, contornada sobre fundo transparente.
+/// - [AppPrimaryButton]: a ação principal da tela. Pill floresta.
+/// - [AppAccentButton]: confirmação ou destaque (lima). No máximo um por tela.
+/// - [AppSecondaryButton]: alternativa, pill branca com borda fina.
 ///
-/// Todos aceitam [isLoading], que troca o rótulo por um indicador e desabilita
-/// o toque — sem mudar a largura, para o layout não pular.
+/// Pressionar encolhe o botão para 97% — a escala é o feedback, a cor não
+/// muda. Todos aceitam [isLoading], que troca o rótulo por um indicador e
+/// desabilita o toque sem mudar a largura, para o layout não pular.
 
 enum _ButtonKind { primary, accent, secondary }
 
-class _BaseButton extends StatelessWidget {
+class _BaseButton extends StatefulWidget {
   const _BaseButton({
     required this.kind,
     required this.label,
@@ -34,67 +35,105 @@ class _BaseButton extends StatelessWidget {
   final bool onImage;
 
   @override
+  State<_BaseButton> createState() => _BaseButtonState();
+}
+
+class _BaseButtonState extends State<_BaseButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final enabled = onPressed != null && !isLoading;
+    final enabled = widget.onPressed != null && !widget.isLoading;
 
-    final Color spinnerColor = switch (kind) {
+    // Sobre foto, a pill branca vira contorno branco translúcido: a borda
+    // cinza padrão some sobre a imagem.
+    const onImageInk = Color(0xFFFFFFFF);
+
+    final Color spinnerColor = switch (widget.kind) {
       _ButtonKind.primary => colors.onInverse,
       _ButtonKind.accent => colors.onPrimary,
-      _ButtonKind.secondary => onImage ? colors.inverse : colors.textPrimary,
+      _ButtonKind.secondary => widget.onImage ? onImageInk : colors.textPrimary,
     };
 
-    final Widget child = isLoading
+    final Widget child = widget.isLoading
         ? SizedBox.square(
-            dimension: 20,
+            dimension: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
+              strokeCap: StrokeCap.round,
               color: spinnerColor,
             ),
           )
-        : _label(context);
+        : _label();
 
-    final Widget button = switch (kind) {
+    final VoidCallback? onPressed = enabled ? widget.onPressed : null;
+
+    // O tema dá largura mínima infinita aos botões (CTA de largura total).
+    // Sem expandir, o botão volta a medir o próprio conteúdo — senão ele
+    // estica numa Column e quebra o layout numa Row.
+    final ButtonStyle? sizeStyle = widget.expanded
+        ? null
+        : const ButtonStyle(
+            minimumSize: WidgetStatePropertyAll(Size(64, AppSize.button)),
+          );
+
+    final Widget button = switch (widget.kind) {
       _ButtonKind.primary => ElevatedButton(
-        onPressed: enabled ? onPressed : null,
+        onPressed: onPressed,
+        style: sizeStyle,
         child: child,
       ),
       _ButtonKind.accent => FilledButton(
-        onPressed: enabled ? onPressed : null,
+        onPressed: onPressed,
+        style: sizeStyle,
         child: child,
       ),
-      // Sobre uma foto, a borda discreta some. A variante onImage troca o
-      // contorno pela cor de alto contraste, que lê sobre qualquer imagem.
       _ButtonKind.secondary => OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: onImage
+        onPressed: onPressed,
+        style: widget.onImage
             ? OutlinedButton.styleFrom(
-                foregroundColor: colors.inverse,
-                side: BorderSide(color: colors.inverse, width: 1.5),
-              )
-            : null,
+                foregroundColor: onImageInk,
+                backgroundColor: onImageInk.withValues(alpha: 0.12),
+                side: BorderSide(color: onImageInk.withValues(alpha: 0.7)),
+              ).merge(sizeStyle)
+            : sizeStyle,
         child: child,
       ),
     };
 
-    if (expanded) {
-      return SizedBox(
-        width: double.infinity,
-        height: AppSize.button,
-        child: button,
-      );
-    }
-    return SizedBox(height: AppSize.button, child: button);
+    return Listener(
+      onPointerDown: enabled ? (_) => _setPressed(true) : null,
+      onPointerUp: (_) => _setPressed(false),
+      onPointerCancel: (_) => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed ? kAppPressScale : 1,
+        duration: AppDuration.fast,
+        curve: AppCurve.standard,
+        child: SizedBox(
+          width: widget.expanded ? double.infinity : null,
+          height: AppSize.button,
+          child: button,
+        ),
+      ),
+    );
   }
 
-  Widget _label(BuildContext context) {
-    if (icon == null) return Text(label);
+  Widget _label() {
+    if (widget.icon == null) return Text(widget.label);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconTheme.merge(data: const IconThemeData(size: 20), child: icon!),
-        const SizedBox(width: AppSpacing.sm),
-        Text(label),
+        IconTheme.merge(
+          data: const IconThemeData(size: 18),
+          child: widget.icon!,
+        ),
+        const SizedBox(width: AppSpacing.xs + 2),
+        Flexible(child: Text(widget.label, overflow: TextOverflow.ellipsis)),
       ],
     );
   }
@@ -187,8 +226,8 @@ class AppSecondaryButton extends StatelessWidget {
   );
 }
 
-/// Botão de ícone circular usado na navegação (voltar, fechar, menu).
-/// Fundo de superfície elevada, sem borda.
+/// O chip de ícone do sistema: círculo branco com borda fina e uma sombra de
+/// 1px. É o dispositivo recorrente da navegação (voltar, fechar, menu).
 class AppCircleIconButton extends StatelessWidget {
   const AppCircleIconButton({
     super.key,
@@ -206,17 +245,27 @@ class AppCircleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return SizedBox.square(
-      dimension: size,
+
+    final Widget chip = DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: AppShadow.xs,
+        border: Border.all(color: colors.borderLight, width: AppSize.border),
+      ),
       child: Material(
-        color: colors.surfaceLight,
+        color: colors.surface,
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onPressed,
-          child: Icon(icon, size: 20, color: colors.textPrimary),
+          child: Icon(icon, size: 18, color: colors.textPrimary),
         ),
       ),
+    );
+
+    return SizedBox.square(
+      dimension: size,
+      child: tooltip == null ? chip : Tooltip(message: tooltip, child: chip),
     );
   }
 }

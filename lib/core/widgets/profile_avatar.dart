@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
 
-/// Avatar circular com três estados: imagem, inicial do nome e ícone genérico.
+/// Avatar circular com três estados: imagem, iniciais e ícone genérico.
 ///
-/// [ringed] acrescenta um anel em lima — use para marcar o próprio usuário ou
-/// um item selecionado, nunca como decoração.
+/// Sem foto, as iniciais ficam em tinta sobre lima pálido. [ringed]
+/// acrescenta o anel do sistema — 2px de respiro na cor da superfície e 2px
+/// de lima por fora. Use para marcar o próprio usuário ou um item escolhido,
+/// nunca como decoração.
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({
     super.key,
@@ -22,60 +25,86 @@ class ProfileAvatar extends StatelessWidget {
   final String? fallbackName;
   final bool ringed;
 
+  static const double _ring = 2;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final inner = ringed ? size - _ring * 4 : size;
+
+    final Widget avatar = Container(
+      width: inner,
+      height: inner,
+      decoration: BoxDecoration(
+        color: colors.accentSoft,
+        shape: BoxShape.circle,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: _content(context, inner),
+    );
+
+    if (!ringed) return avatar;
+
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        shape: BoxShape.circle,
-        border: ringed
-            ? Border.all(color: colors.primary, width: 2)
-            : null,
+      padding: const EdgeInsets.all(_ring),
+      decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+      child: Container(
+        padding: const EdgeInsets.all(_ring),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          shape: BoxShape.circle,
+        ),
+        child: avatar,
       ),
-      clipBehavior: Clip.antiAlias,
-      child: _content(context),
     );
   }
 
-  Widget _content(BuildContext context) {
+  Widget _content(BuildContext context, double inner) {
     final url = imageUrl;
-    if (url == null || url.isEmpty) return _fallback(context);
+    if (url == null || url.isEmpty) return _fallback(context, inner);
 
     return Image.network(
       url,
-      width: size,
-      height: size,
+      width: inner,
+      height: inner,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _fallback(context),
+      errorBuilder: (context, error, stackTrace) => _fallback(context, inner),
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;
-        return Center(child: AppLoader(size: size * 0.35));
+        return Center(child: AppLoader(size: inner * 0.35));
       },
     );
   }
 
-  Widget _fallback(BuildContext context) {
+  Widget _fallback(BuildContext context, double inner) {
     final colors = context.colors;
-    final name = fallbackName;
+    final initials = _initials(fallbackName);
 
-    if (name != null && name.isNotEmpty) {
+    if (initials.isNotEmpty) {
       return Center(
         child: Text(
-          name.substring(0, 1).toUpperCase(),
-          style: AppTypography.h2.copyWith(
-            color: colors.textSecondary,
-            fontSize: size * 0.38,
+          initials,
+          style: AppTypography.label.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: inner * 0.36,
+            height: 1,
           ),
         ),
       );
     }
     return Icon(
-      Icons.person_rounded,
-      size: size * 0.55,
-      color: colors.textSecondary,
+      LucideIcons.user,
+      size: inner * 0.45,
+      color: colors.textPrimary,
     );
+  }
+
+  static String _initials(String? name) {
+    if (name == null) return '';
+    final words = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+    return words.take(2).map((w) => w[0]).join().toUpperCase();
   }
 }

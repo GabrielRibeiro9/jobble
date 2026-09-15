@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/theme/app_typography.dart';
 
-/// Linha de lista: ícone opcional em círculo, título, apoio e valor à direita.
+/// Tamanho do chevron — e da coluna que ele ocupa mesmo quando não aparece.
+const double _chevronSize = 16;
+
+/// Linha de lista: ícone opcional em chip, título, apoio e valor à direita.
 ///
 /// O chevron aparece automaticamente quando a linha é tocável, e some quando
 /// não é — assim a affordance nunca mente sobre o que é clicável.
@@ -26,7 +30,8 @@ class AppListRow extends StatelessWidget {
   final String? value;
   final IconData? icon;
 
-  /// Cor de fundo do círculo do ícone. Sem valor, usa a superfície elevada.
+  /// Fundo do chip do ícone (um dos `AppColorsTheme.categorical`). Sem valor,
+  /// o chip é branco com borda fina.
   final Color? iconColor;
 
   /// Substitui o valor/chevron à direita.
@@ -42,83 +47,111 @@ class AppListRow extends StatelessWidget {
     final colors = context.colors;
     final titleColor = destructive ? colors.error : colors.textPrimary;
 
+    final Color chipFill = destructive
+        ? colors.errorBackground
+        : (iconColor ?? colors.surface);
+    final Color iconInk = destructive
+        ? colors.error
+        : (iconColor != null ? colors.onPrimary : colors.textPrimary);
+
     return Material(
-      color: Colors.transparent,
+      type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm,
           ),
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                Container(
-                  width: AppSize.categoryIcon,
-                  height: AppSize.categoryIcon,
-                  decoration: BoxDecoration(
-                    color: iconColor ?? colors.surfaceLight,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 19,
-                    color: iconColor != null
-                        ? colors.onPrimary
-                        : (destructive ? colors.error : colors.textPrimary),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.title.copyWith(color: titleColor),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  if (icon != null) ...[
+                    Container(
+                      width: AppSize.categoryIcon,
+                      height: AppSize.categoryIcon,
+                      decoration: BoxDecoration(
+                        color: chipFill,
+                        shape: BoxShape.circle,
+                        border: iconColor == null && !destructive
+                            ? Border.all(
+                                color: colors.border,
+                                width: AppSize.border,
+                              )
+                            : null,
+                      ),
+                      child: Icon(icon, size: 16, color: iconInk),
                     ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: colors.textSecondary,
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: AppTypography.title.copyWith(
+                            color: titleColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle!,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (trailing != null)
+                    trailing!
+                  else ...[
+                    // O valor mede o próprio texto (até 55% da linha) e
+                    // encosta à direita. Ao lado de um título `Expanded`, um
+                    // valor `Flexible` dividia a linha ao meio: cada valor
+                    // começava no meio e terminava onde o texto acabasse.
+                    if (value != null)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth * 0.55,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.xs),
+                          child: Text(
+                            value!,
+                            maxLines: 1,
+                            textAlign: TextAlign.end,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.label.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
                         ),
                       ),
+                    // O chevron tem coluna fixa: linha com valor e sem toque
+                    // reserva o mesmo espaço, para os valores de um grupo
+                    // terminarem alinhados.
+                    if (onTap != null || value != null) ...[
+                      const SizedBox(width: AppSpacing.xxs),
+                      if (onTap != null)
+                        Icon(
+                          LucideIcons.chevron_right,
+                          size: _chevronSize,
+                          color: colors.textHint,
+                        )
+                      else
+                        const SizedBox(width: _chevronSize),
                     ],
                   ],
-                ),
-              ),
-              if (trailing != null)
-                trailing!
-              else ...[
-                if (value != null)
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: AppSpacing.xs),
-                      child: Text(
-                        value!,
-                        textAlign: TextAlign.end,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body.copyWith(
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (onTap != null) ...[
-                  const SizedBox(width: AppSpacing.xxs),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 20,
-                    color: colors.textHint,
-                  ),
                 ],
-              ],
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -128,8 +161,8 @@ class AppListRow extends StatelessWidget {
 
 /// Agrupa [AppListRow]s em um card, com divisores só entre as linhas.
 ///
-/// Agrupar é o que dá hierarquia a uma tela de configurações: cada grupo é um
-/// bloco de assunto, e o cabeçalho opcional o nomeia.
+/// O cabeçalho opcional é o micro-rótulo em caixa alta do sistema
+/// ("PREFERÊNCIAS") — é ele que nomeia cada bloco de assunto.
 class AppListGroup extends StatelessWidget {
   const AppListGroup({super.key, required this.children, this.header});
 
@@ -146,34 +179,39 @@ class AppListGroup extends StatelessWidget {
         if (header != null) ...[
           Padding(
             padding: const EdgeInsets.only(
-              left: AppSpacing.xs,
+              left: AppSpacing.xxs,
               bottom: AppSpacing.xs,
             ),
             child: Text(
-              header!,
-              style: AppTypography.label.copyWith(color: colors.textSecondary),
+              header!.toUpperCase(),
+              style: AppTypography.overline.copyWith(color: colors.textHint),
             ),
           ),
         ],
-        Container(
+        DecoratedBox(
           decoration: BoxDecoration(
             color: colors.surface,
             borderRadius: AppRadius.lgAll,
+            border: Border.all(color: colors.borderLight, width: AppSize.border),
+            boxShadow: AppShadow.card,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                children[i],
-                if (i != children.length - 1)
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: AppSpacing.md,
-                    color: colors.borderLight,
-                  ),
+          child: ClipRRect(
+            borderRadius: AppRadius.lgAll,
+            child: Column(
+              children: [
+                for (var i = 0; i < children.length; i++) ...[
+                  children[i],
+                  if (i != children.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: AppSpacing.md,
+                      endIndent: AppSpacing.md,
+                      color: colors.borderLight,
+                    ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ],

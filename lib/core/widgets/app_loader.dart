@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tcc/core/theme/app_colors.dart';
+import 'package:flutter_tcc/core/theme/app_typography.dart';
 
 /// Indicador de carregamento do app.
 ///
-/// Um arco fino em lima: mesma linguagem de traço dos ícones e do acento de
-/// foco. A cor pode ser sobrescrita quando o loader fica sobre uma superfície
-/// de alto contraste (dentro da CTA branca, por exemplo).
+/// Um arco fino na cor da tinta — floresta no claro, lima no escuro. A cor
+/// pode ser sobrescrita quando o loader fica sobre uma superfície de alto
+/// contraste (dentro da CTA, por exemplo).
 class AppLoader extends StatelessWidget {
   const AppLoader({super.key, this.size = 20, this.color, this.strokeWidth = 2});
 
@@ -20,7 +21,7 @@ class AppLoader extends StatelessWidget {
       dimension: size,
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
-        color: color ?? context.colors.primary,
+        color: color ?? context.colors.inverse,
         strokeCap: StrokeCap.round,
       ),
     );
@@ -35,15 +36,19 @@ class AppLoaderCentered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AppLoader(size: 28),
+          const AppLoader(size: 26),
           if (label != null) ...[
             const SizedBox(height: 12),
-            Text(label!, style: theme.textTheme.bodyMedium),
+            Text(
+              label!,
+              style: AppTypography.bodySmall.copyWith(
+                color: context.colors.textSecondary,
+              ),
+            ),
           ],
         ],
       ),

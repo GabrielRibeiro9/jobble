@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc/core/constants/app_assets.dart';
+import 'package:flutter_tcc/core/theme/app_colors.dart';
 import 'package:flutter_tcc/core/theme/app_spacing.dart';
 import 'package:flutter_tcc/core/widgets/app_buttons.dart';
 import 'package:flutter_tcc/features/auth/presentation/pages/login_page.dart';
@@ -24,7 +25,8 @@ class IntroPage extends StatelessWidget {
             ),
           ),
 
-          // Radial gradient overlay (dark edges, clearer center)
+          // Véu radial em floresta (bordas escuras, centro limpo). Floresta e
+          // não preto: é o mesmo tingimento das sombras do sistema.
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -33,8 +35,8 @@ class IntroPage extends StatelessWidget {
                   radius: 0.8,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.5),
-                    Colors.black.withValues(alpha: 0.85),
+                    AppColorsTheme.photoScrim.withValues(alpha: 0.5),
+                    AppColorsTheme.photoScrim.withValues(alpha: 0.88),
                   ],
                   stops: const [0.3, 0.6, 1.0],
                 ),
@@ -42,7 +44,8 @@ class IntroPage extends StatelessWidget {
             ),
           ),
 
-          // Buttons
+          // Sobre o floresta, a CTA é lima (par aprovado do sistema); a pill
+          // floresta sumiria no véu.
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -55,7 +58,7 @@ class IntroPage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AppPrimaryButton(
+                  AppAccentButton(
                     label: 'Já tenho uma conta',
                     onPressed: () {
                       Navigator.push(
