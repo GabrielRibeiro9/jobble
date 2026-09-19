@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import 'package:flutter_tcc/core/config/app_config.dart';
 import 'package:flutter_tcc/core/network/api_exception.dart';
 import 'package:flutter_tcc/core/widgets/app_empty_state.dart';
 import 'package:flutter_tcc/core/widgets/app_loader.dart';
@@ -75,7 +76,9 @@ class _AccountGatePageState extends State<AccountGatePage> {
       );
     }
 
-    if (verification.canWork) return const MainShellPage();
+    if (verification.canWork || AppConfig.skipVerification) {
+      return const MainShellPage();
+    }
 
     return VerificationCenterPage(asGate: true, onChanged: _check);
   }

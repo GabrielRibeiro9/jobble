@@ -44,6 +44,20 @@ class AppConfig {
     defaultValue: kDebugMode,
   );
 
+  /// Compara `--dart-define=USE_MOCK=true` em tempo de compilação. Retorna
+  /// *true* quando o desenvolvedor ligou o mock; caso contrário *false*.
+  static const bool useMock = bool.fromEnvironment(
+    'USE_MOCK',
+    defaultValue: false,
+  );
+
+  /// Pula a verificação de conta (identidade/certidão) e entra direto no app.
+  /// Use apenas em desenvolvimento: `--dart-define=SKIP_VERIFICATION=true`.
+  static const bool skipVerification = bool.fromEnvironment(
+    'SKIP_VERIFICATION',
+    defaultValue: false,
+  );
+
   /// Resumo da configuração ativa, para log de inicialização.
   static String describe() =>
       'AppConfig(apiBaseUrl: $apiBaseUrl, uploadsBaseUrl: $uploadsBaseUrl, '

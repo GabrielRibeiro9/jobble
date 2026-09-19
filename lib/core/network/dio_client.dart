@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_tcc/core/config/app_config.dart';
+import 'package:flutter_tcc/core/network/mock_interceptor.dart';
 import 'package:flutter_tcc/core/services/token_service.dart';
 
 class DioClient {
@@ -38,6 +39,13 @@ class DioClient {
         },
       ),
     );
+
+    if (AppConfig.useMock) {
+      // Modo desenvolvimento (`--dart-define=USE_MOCK=true`): responde os
+      // GETs de leitura com dados ficticios, para o painel de 5 abas abrir
+      // cheio sem depender da API nem de login real.
+      _dio.interceptors.add(MockInterceptor());
+    }
 
     if (AppConfig.enableHttpLogs) {
       _dio.interceptors.add(
